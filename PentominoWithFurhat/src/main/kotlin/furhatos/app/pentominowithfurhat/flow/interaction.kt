@@ -32,6 +32,11 @@ val GameStarted : State = state(Interaction) {
 
         //Hier senden wir ein zufälliges Pentomino-Teil, das wir uns im aktuellen User gespeichert haben, an die Web-UI
         send("selectPiece", mapOf("piece" to users.current.rand_piece.toString()))
+
+        delay(2000) //Hier ist ein Beispiel dafür, wie wir den aktuellen Flow für eine kurze Wartezeit unterbrechen können
+        furhat.say("Placing selected piece")
+        send("startPlacing")
+
     }
 
     /**

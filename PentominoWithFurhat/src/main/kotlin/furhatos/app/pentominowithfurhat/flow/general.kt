@@ -7,8 +7,6 @@ import furhatos.util.*
 //Hier wird unsere Pentomino Web-UI definiert
 val GUI = HostedGUI("Pentomino", "assets/pentomino", 3000)
 
-var randomPiece = ""
-
 val Idle: State = state {
 
     init {

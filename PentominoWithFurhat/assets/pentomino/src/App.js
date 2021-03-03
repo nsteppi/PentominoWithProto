@@ -60,10 +60,6 @@ const App = () => {
   // Speichert, ob die Web-UI mit dem Roboter verbunden ist
   const [initialized, setInitialized] = useState(false)
 
-  // Speichert, ob die Web-UI auf alle Events des Roboters hört
-  const [eventsInitialized, setEventsInitialized] = useState(false)
-
-
   //Hält den momentanen GameState und sorgt dafür, dass Änderungen korrekt umgesetzt werden
   const [gameState, dispatch] = useReducer((state, action) => {
     switch (action.type) {
@@ -190,6 +186,7 @@ const App = () => {
    * Wird entweder durch Button-Klick oder Event vom Roboter aufgerufen.
    */
   const placeSelected = () => {
+    console.log("Active Shapes: " + activeShape)
     if (activeShape.length > 0) {
       let selected_shape = activeShape[0].name;
       let to_replace = null;
@@ -263,7 +260,7 @@ const App = () => {
       dispatch({type: 'gameWon'})
     }
 
-    if (gameState.game.status === 'ongoing' && !eventsInitialized) {
+    if (gameState.game.status === 'ongoing') {
         // Wir subscriben zu dem Event, das vom Roboter gesendet werden kann, um einen Spielstein auszuwählen
         window.furhat.subscribe('selectPiece', function (params) {
           selectPentoPiece(params.piece)
@@ -280,9 +277,6 @@ const App = () => {
         window.furhat.subscribe('startPlacing', function () {
           placeSelected()
         })
-
-      // Sorgt dafür, dass wir nur einmal zu den Furhat-Events subscriben
-      setEventsInitialized(true);
     }
 
   }, [initialShapes, gameState.game.status]);
@@ -297,6 +291,12 @@ const App = () => {
     else {
       dispatch({type: 'deselectPiece'})
     }
+    if(window.furhat) {
+        window.furhat.subscribe('startPlacing', function () {
+          placeSelected()
+        })
+    }
+
   }, [activeShape]);
 
   /**
