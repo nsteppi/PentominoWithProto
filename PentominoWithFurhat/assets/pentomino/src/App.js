@@ -21,7 +21,7 @@ const App = () => {
   const grid_y = 0;
 
   // Diese Variable setzt, wie lang das Game im Webinterface dauert (in Sekunden)
-  const game_time = 600;
+  const game_time = 10;
 
   const grid_config = {
     "n_blocks": n_blocks,
@@ -59,6 +59,20 @@ const App = () => {
 
   // Speichert, ob die Web-UI mit dem Roboter verbunden ist
   const [initialized, setInitialized] = useState(false)
+
+  //Speichert, ob wir gerade unser Popup für Spiel gewonnen anzeigen
+  const [isPopupWonOpen, setIsPopupWonOpen] = useState(false);
+
+  //Speichert, ob wir gerade unser Popup für Spiel gewonnen anzeigen
+  const [isPopupLostOpen, setIsPopupLostOpen] = useState(false);
+
+  const togglePopupWon = () => {
+    setIsPopupWonOpen(!isPopupWonOpen);
+  };
+
+  const togglePopupLost = () => {
+    setIsPopupLostOpen(!isPopupLostOpen);
+  };
 
   //Hält den momentanen GameState und sorgt dafür, dass Änderungen korrekt umgesetzt werden
   const [gameState, dispatch] = useReducer((state, action) => {
@@ -132,6 +146,43 @@ const App = () => {
 
     }
   }, initialState);
+
+
+  /**
+   * Hier erzeugen wir unseren Popup für den Fall, dass wir das Spiel gewonnen haben
+   * @param props
+   * @returns {*}
+   * @constructor
+   */
+  const PopupWon = props => {
+    return (
+        <div className="popup-box">
+          <div className="box">
+            <b>Congratulations!</b>
+            <p>You won this round of Pentomino.</p>
+            <button onClick={props.handleClose}>Okay</button>
+          </div>
+        </div>
+    );
+  };
+
+  /**
+   * Hier erzeugen wir unseren Popup für den Fall, dass wir das Spiel verloren haben
+   * @param props
+   * @returns {*}
+   * @constructor
+   */
+  const PopupLost = props => {
+    return (
+        <div className="popup-box">
+          <div className="box">
+            <b>Awwwwww!</b>
+            <p>Sorry, but the time is up - you lost this round of Pentomino.</p>
+            <button onClick={props.handleClose}>Okay</button>
+          </div>
+        </div>
+    );
+  };
 
 
   /**
@@ -243,7 +294,12 @@ const App = () => {
 
     // Setzt den Alert für ein gewonnenes / verlorenes Spiel
     if (['lost', 'won'].includes(gameState.game.status)){
-      alert(`You ${gameState.game.status} the game!`);
+      if ('lost' === gameState.game.status){
+        togglePopupLost();
+      }
+      if ('won' === gameState.game.status){
+        togglePopupWon();
+      }
       if (gameTimeHandler.current){
         clearInterval(gameTimeHandler.current)
       }
@@ -366,6 +422,12 @@ const App = () => {
       <div className="twelve columns">
         <h5>Pentomino Game</h5>
       </div>
+      {isPopupWonOpen && <PopupWon
+          handleClose={togglePopupWon}
+      />}
+      {isPopupLostOpen && <PopupLost
+          handleClose={togglePopupLost}
+      />}
       <div className="row">
         <div className="six columns">
           <button id="startBtn" style={{ marginRight: 50 }} onClick={() => startGame()}>Start new game</button>
