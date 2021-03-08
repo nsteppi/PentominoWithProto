@@ -123,6 +123,17 @@ const App = () => {
             startTime: new Date().getTime()
           }
         };
+      case 'resetGame':
+        return {
+          "left_board": [],
+          "right_board": [],
+          "game": {
+            "status": "initial",
+            "startTime": undefined,
+            "time": game_time,
+          },
+          "selected": "None"
+        }
       case 'refreshTime':
 
         const currentTime = new Date().getTime();
@@ -223,6 +234,7 @@ const App = () => {
    */
   const startGame = () => {
     // Alle aktuellen Spielsteine auf dem rechten Board löschen
+    dispatch({type: "resetGame"});
     setPlacedShapes([]);
 
     // ALle aktuell ausgewählten Spielsteine löschen

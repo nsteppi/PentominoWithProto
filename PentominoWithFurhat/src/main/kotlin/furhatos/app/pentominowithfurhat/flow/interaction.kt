@@ -67,7 +67,9 @@ val GameStarted : State = state(Interaction) {
         // Hier speichern wir uns zu Test-Zwecken ein random Element vom linken Board ab, das wir dann
         // mit send() später in der Interaktion auswählen können
         val listPieces = latest_game_data.left_board
-        users.current.rand_piece = listPieces.shuffled().take(1)[0].name
+        if (listPieces.size > 0) {
+            users.current.rand_piece = listPieces.shuffled().take(1)[0].name
+        }
 
     }
 
