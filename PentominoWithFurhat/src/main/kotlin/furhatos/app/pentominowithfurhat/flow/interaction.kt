@@ -37,6 +37,26 @@ val GameStarted : State = state(Interaction) {
         furhat.say("Placing selected piece")
         send("startPlacing")
 
+        delay(2000)
+        //This is a demo how to flip a selected piece
+        furhat.say("Flipping selected piece")
+        send("flipSelected", mapOf("axis" to "horizontal"))
+
+        delay(2000)
+        //This is a demo how to rotate a selected piece
+        furhat.say("Rotate selected piece")
+        send("rotateSelected", mapOf("angle" to 90))
+
+        delay(2000)
+        //This is a demo how to rotate a selected piece
+        furhat.say("Moving selected piece to the right")
+        send("moveSelected", mapOf("dir" to "right"))
+
+        delay(2000)
+        //This is a demo how to rotate a selected piece
+        furhat.say("Placing selected piece")
+        send("placeSelected")
+
     }
 
     /**

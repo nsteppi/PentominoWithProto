@@ -1,6 +1,7 @@
 import React, {Component, useEffect, useRef} from "react";
 import {pento_create_shape} from "./HelperPentoShapes";
 import {draw_shape, draw_shape_border} from "./HelperDrawingBlocks";
+import {useInterval} from "../helper/useInterval";
 
 export const PentoBoard = ({grid_properties, shapes, config, activeShape}) => {
 
@@ -43,7 +44,7 @@ export const PentoBoard = ({grid_properties, shapes, config, activeShape}) => {
             }
         })
         // make sure to draw active shape last
-        if (active_shape!= null) {
+        if (active_shape != null) {
             active_shape.set_highlight("red");
             draw_shape(ctx, active_shape, {offsetX: 0, offsetY: 0});
             draw_shape_border(ctx, active_shape, {offsetX: 0, offsetY: 0});
@@ -142,12 +143,7 @@ export const PentoBoard = ({grid_properties, shapes, config, activeShape}) => {
     };
 
 
-
-
-
-
-    useEffect(() => {
-
+    const draw_all = () => {
         const canvas = canvasRef.current
         const context = canvas.getContext('2d')
 
@@ -155,7 +151,12 @@ export const PentoBoard = ({grid_properties, shapes, config, activeShape}) => {
         init_board(canvas, context)
         init_grid(context)
         draw(context)
-    }, [shapes, activeShape])
+    };
+
+    /**
+     * This re-draws the elements on the canvas every 200 ms
+     */
+    useInterval(() => draw_all(), 200);
 
     return <canvas ref={canvasRef} />
 }
