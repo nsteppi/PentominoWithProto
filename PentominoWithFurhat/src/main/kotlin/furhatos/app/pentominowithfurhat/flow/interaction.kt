@@ -27,12 +27,12 @@ import furhatos.records.Location
 const val maxPieces = 12  // how many PentoPieces are on the board at game start
 
 /** location of the tablet in meter */
-const val x = 0.0  // how far to the right(positive) or left(negative) of the robot
-const val y = -0.35  // difference between eye level of the robot and level of the object
+// x: how far to the right(positive) or left(negative) of the robot
+// y: difference between eye level of the robot and level of the object
 // e.g. given my eye level is 1.50m, if I want to describe the position of something on the ground y would be -1.50m
-const val z = 1.0  // how far in front of the robot
-
-
+// z: how far in front of the robot
+val leftBoard = Location(0.1, -0.35, 1.0)
+val rightBoard = Location(-0.1, -0.35, 1.0)
 
 
 /**
@@ -134,7 +134,7 @@ val Start : State = state(Interaction) {
 val Explanation : State = state(Interaction) {
 
     onEntry {
-        furhat.attend(Location(x, y, z))
+        furhat.attend(leftBoard)
         val textFile = javaClass.getClassLoader().getResource("SimpleDescription")
                        .readText(charset = Charsets.UTF_8).split("\n")
         textFile.forEachIndexed { i, line ->
@@ -163,7 +163,13 @@ val Explanation : State = state(Interaction) {
     }
 
     onResponse {
-        furhat.ask("Sorry, say that again please.") //TODO: random
+        furhat.say {
+            random {
+                +"Sorry, say that again please."
+                +"Would you like to hear the explanation again?"
+                +"Excuse me? Do you want me to repeat?"
+            }
+        }
     }
 }
 
@@ -190,7 +196,7 @@ val GatherInformation : State = state(GameRunning) {
     }
 
     onEntry {
-        furhat.glance(Location(x, y, z))
+        furhat.glance(leftBoard)
         users.current.roundKnowledge = KnowledgeBase()
         if (users.current.state.size == maxPieces || users.current.state.size <= 0) {
             furhat.ask("Which piece do you want to start with?", timeout = 20000)
@@ -215,7 +221,7 @@ val GatherInformation : State = state(GameRunning) {
     onResponse<Last> {
         if (users.current.state.size == 1) {
             send("selectPiece", mapOf("piece" to users.current.state[0].name))
-            furhat.attend(Location(x, y, z))
+            furhat.attend(leftBoard)
             goto(PieceSelected)
         }
         propagate()  // enter the onResponse block below
@@ -228,7 +234,14 @@ val GatherInformation : State = state(GameRunning) {
         users.current.roundKnowledge.position = Positions.toCompPosition(it.findAll(Positions()))
         if (users.current.roundKnowledge == KnowledgeBase()) {
             furhat.gesture(Thoughtful, async=false)
-            furhat.ask("I didn't get it. What piece did you talk about?") //TODO: random
+            furhat.ask{
+                random{
+                    +"I didn't get it. Which piece did you talk about?"
+                    +"Sorry. I didn't understand. What piece?"
+                    +"Could you rephrase that?"
+                    +"I am having trouble understanding. Please try again!"
+                }
+            }
         }
         goto(SelectPiece)
     }
@@ -243,7 +256,7 @@ val GatherInformation : State = state(GameRunning) {
                 +"You seem to be stuck. I will come to rescue."
             }
         }
-        furhat.attend(Location(x, y, z))
+        furhat.attend(leftBoard)
         send("selectPiece", mapOf("piece" to users.current.rand_piece_name.toString()))
         if (users.current.rand_piece_loc.y >= 0) {
             furhat.say("This is the ${users.current.rand_piece_color} " +
@@ -266,7 +279,7 @@ val SelectPiece : State = state(GameRunning) {
 
     // apply filters to candidates, if a filter is too strict (no remaining candidates) it is ignored
     onEntry {
-        furhat.attend(Location(x, y, z))
+        furhat.attend(leftBoard)
         users.current.candidates  = users.current.state
         // collect pieces matching the extracted vague color category
         if (users.current.roundKnowledge.color != null) {
@@ -278,7 +291,7 @@ val SelectPiece : State = state(GameRunning) {
             }
         }
         // additionally remove all pieces the position of which does not match the extracted one
-        if (users.current.roundKnowledge.position != null) {
+        if (users.current.roundKnowledge.position != Positions()) {
             val newCandidates = users.current.candidates.filter {
                     candi -> users.current.roundKnowledge.position!!.includedIn(candi.location)
             }
@@ -349,7 +362,7 @@ val VerifyInformation : State = state(GameRunning) {
 
     onResponse<Yes> {
         furhat.gesture(BrowFrown)
-        furhat.glance(Location(x, y, z))
+        furhat.glance(leftBoard)
         furhat.say {
             random {
                 +"Oh I am sorry! Can we try another piece? "
@@ -394,7 +407,7 @@ val GetInformation : State = state(GameRunning) {
                                 (acc + Positions.toString(it.location)) else acc
         }
         if (remainingPositions.size == users.current.candidates.size
-            && (users.current.roundKnowledge.position == null) //TODO: discuss with group
+            && (users.current.roundKnowledge.position == Positions()) //TODO: discuss with group
         ) {
             furhat.ask("Tell me about the exact position of the piece!")
         }
@@ -444,10 +457,8 @@ val PieceSelected : State = state(GameRunning)  {
     }
 
     onResponse<Yes> {
-        furhat.glance(users.current)
-        print("start") //todo: remove
+        furhat.glance(rightBoard, 1500)
         call(sendWait("startPlacing"))
-        println(users.current.state.size) //todo: remove
         furhat.say {
             + "Ok."
             + BrowRaise
@@ -497,7 +508,7 @@ val GameFinished : State = state(Interaction) {
 
     onEntry {
         furhat.attend(users.current)
-        furhat.glance(Location(x, y, z))
+        furhat.glance(rightBoard)
         if (users.current.state.isEmpty()) {
             // wait for furhat to stop speaking
             while (furhat.isSpeaking()) {
