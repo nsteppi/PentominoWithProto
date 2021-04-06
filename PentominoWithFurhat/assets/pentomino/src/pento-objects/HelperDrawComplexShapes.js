@@ -1,7 +1,7 @@
 import {grid_cell_to_coordinates} from "./HelperDrawingBoard";
 import {pento_create_shape} from "./HelperPentoShapes";
 
-const configPerShape = (shape, n_blocks) => {
+export const configPerShape = (shape, n_blocks) => {
 
     let shape_config = {"x": -1, "y": -1, "coords": {}}
 
@@ -25,6 +25,14 @@ const configPerShape = (shape, n_blocks) => {
                 'Z': {'x':7 , 'y':5}
             };
             return shape_config;
+
+        case "upper_left_corner":
+            shape_config["x"] = 0;
+            shape_config["y"] = 0;
+            for (let type of ['F', 'I', 'L', 'N', 'P', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']) {
+                shape_config["coords"][type] = {'x':3, 'y': 3};
+            }
+            return shape_config;
         default:
             return shape_config
     }
@@ -46,9 +54,6 @@ export const generateElephantShape = (shape, pento_config, grid_config) => {
 
     let generated_shapes = 	[];
 
-    //x, y and coordinates for specific shape
-    const shape_config = configPerShape(shape, grid_config.n_blocks)
-
     for (let id=0; id<pento_types.length; id++) {
         let rand_color = colors[Math.floor(Math.random() * colors.length)];
 
@@ -56,7 +61,7 @@ export const generateElephantShape = (shape, pento_config, grid_config) => {
         let pento_piece = pento_types[id]
 
 
-        let new_shape = createNewPentoPieceInShape(shape, pento_config, grid_config, pento_piece, rand_color, id);
+        let new_shape = createNewPentoPieceInShape(shape, grid_config, pento_piece, rand_color, id);
         generated_shapes.push(new_shape.copy(id));
     }
 
@@ -66,13 +71,13 @@ export const generateElephantShape = (shape, pento_config, grid_config) => {
     return generated_shapes
 };
 
-export const createNewPentoPieceInShape = (shape, pento_config, grid_config, pento_piece, color, id) => {
+export const createNewPentoPieceInShape = (shape, grid_config, pento_piece, color, id) => {
     const shape_config = configPerShape(shape, grid_config.n_blocks)
 
     // place on elephant board (predefined position)
     let eleX = shape_config["x"] + shape_config["coords"][pento_piece]['x'];
     let eleY = shape_config["y"] + shape_config["coords"][pento_piece]['y'];
-    let coords = grid_cell_to_coordinates(eleX, eleY,grid_config.block_size);
+    let coords = grid_cell_to_coordinates(eleX, eleY, grid_config.block_size);
 
     //console.log({"id":id, "x": coords[0], "y": coords[1], "type": pento_types[id], "color": rand_color})
     // create shape for the elephant board: without flip or rotation
@@ -154,7 +159,7 @@ const generate_params = (rand_shape, action_type, grid_config) => {
     var max = grid_config.board_size;
     var min = 0;
     var rotations = [90, 180, 270];
-    var axis = ['horizontal', 'vertical'];
+    var axis = ['vertical']; // Only use one type of mirroring during generation / else ['horizontal', 'vertical'];
 
     switch (action_type) {
         case 'move':
@@ -165,8 +170,9 @@ const generate_params = (rand_shape, action_type, grid_config) => {
             let rand_angle = rotations[Math.floor(Math.random() * rotations.length)];
             return { 'rotation': rand_angle };
         case 'flip':
-            let rand_axis = axis[Math.floor(Math.random() * axis.length)];
-            return { 'axis': rand_axis };
+            return { 'axis': 'vertical' } // always flip vertically during generation for now
+        //let rand_axis = axis[Math.floor(Math.random() * axis.length)];
+        //return { 'axis': rand_axis };
         default:
             console.log('Not implemented: ' + action_type);
             return;

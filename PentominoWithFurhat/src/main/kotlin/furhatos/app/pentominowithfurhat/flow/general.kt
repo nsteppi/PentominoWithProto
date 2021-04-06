@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**
  * general.kt
  * Contains general states as a foundation to be extended in interaction.kt
