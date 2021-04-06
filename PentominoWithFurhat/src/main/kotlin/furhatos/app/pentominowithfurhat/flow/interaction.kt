@@ -203,7 +203,7 @@ val GatherInformation : State = state(GameRunning) {
             furhat.ask("Which piece do you want to start with?", timeout = 20000)
         } else {
             if (users.current.state.size == 1) {
-                furhat.say("Only one piece to go lilo.")
+                furhat.say("Only one piece to go.")
                 send("selectPiece", mapOf("piece" to users.current.state[0].name))
                 furhat.attend(leftBoard)
                 goto(PieceSelected) //TODO: keine abfrage
