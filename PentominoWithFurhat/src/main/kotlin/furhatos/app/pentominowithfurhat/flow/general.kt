@@ -28,14 +28,32 @@ import furhatos.util.*
 val GUI = HostedGUI("Pentomino", "assets/pentomino", 3000)
 var upToDate = true
 
-data class KnowledgeBase(
+class KnowledgeBase(
     var color: Colors? = null,
     var shape: Shapes? = null,
     var position: Positions = Positions()
-)
+) {
+    override fun toString(): String {
+        return "${this.color?.color?: run {""}} "+
+                "${this.shape?.shape?: run {""}} piece " +
+                "${this.position?.toString(detailed = true)}"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        when (other) {
+            is KnowledgeBase -> {
+                return this.color == other.color
+                        && this.shape == other.shape
+                        && this.position == other.position
+            }
+            else -> return false
+        }
+    }
+}
+
 
 // wait after send until furhat info was updated
-fun sendWait(name: String) = state {
+fun sendWait(name: String) = state(GameRunning){
     onEntry {
         upToDate = false
         send(name)
@@ -76,7 +94,7 @@ val Idle: State = state {
     }
 
     onTime(repeat=10000..15000) {
-        furhat.gesture(listOf(LookDown, GazeAway, LookAround).shuffled().take(1)[0], async = false)
+        furhat.gesture(listOf(LookDown(), GazeAway, LookAround).shuffled().take(1)[0], async = false)
     }
 
     // First look for a users that has never declined furhat's request before

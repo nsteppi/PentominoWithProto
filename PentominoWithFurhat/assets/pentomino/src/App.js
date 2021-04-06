@@ -16,6 +16,9 @@
  *        togglePopupWon()
  *        }                   [Zeile 106-111]
  *
+ *  - Die Spielzeit hat sich ins negative bewegt. Um dies zu beheben haben wir die Code Zeilen
+ *    aus [Zeile 277-279] nach [Zeile 339-241] bewegt.
+ *
  * Durch:
  * - Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
  * - WiSe 20/21
@@ -273,6 +276,12 @@ const App = () => {
     setInitialShapes(generateElephantShape("elephant", pento_config, grid_config));
 
     dispatch({type: 'gameStart'})
+    if (gameTimeHandler.current){
+      clearInterval(gameTimeHandler.current)
+    }
+    gameTimeHandler.current = setInterval(() => {
+      dispatch({type: 'refreshTime'});
+    }, 500)
   };
 
   /**
@@ -330,9 +339,7 @@ const App = () => {
         const newPiece = pentoPieceToObj(el.name, el.type, el.color, el.x, el.y);
         dispatch({type: 'addToLeftBoard', piece: newPiece});
       });
-      gameTimeHandler.current = setInterval(() => {
-        dispatch({type: 'refreshTime'});
-      }, 500)
+
     }
 
     // Setzt den Alert für ein gewonnenes / verlorenes Spiel

@@ -33,13 +33,14 @@ val LookAround = defineGesture("lookAround") {
 }
 
 // bow head to the front and look down
-val LookDown = defineGesture("lookDown") {
-    frame(0.5, 4.5) {
-        BasicParams.NECK_TILT to 10.0
-        BasicParams.LOOK_DOWN to 10.0
+fun LookDown(strength: Double = 1.0, duration: Double = 1.0) =
+    defineGesture("lookDown", strength, duration) {
+        frame(0.5, 4.5) {
+            BasicParams.NECK_TILT to 10.0
+            BasicParams.LOOK_DOWN to 10.0
+        }
+        reset(5.0)
     }
-    reset(5.0)
-}
 
 // reset all parameters of the gestures used in Idle
 val ReturnToNormal = defineGesture("ReturnToNormal") {
