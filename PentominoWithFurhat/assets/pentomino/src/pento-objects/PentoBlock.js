@@ -43,6 +43,7 @@ export class Block {
             var vertex = this._vertices[vertex_index];
             var point_x = vertex[0] + offsetX;
             var point_y = vertex[1] + offsetY;
+            //console.log(point_x, point_y, this.x, this.y, this._vertices);
             if (point_x < bbox[0] || point_x > bbox[0] + bbox[2] || point_y > bbox[1] + bbox[3] || point_y < bbox[1]) {
                 return false
             }

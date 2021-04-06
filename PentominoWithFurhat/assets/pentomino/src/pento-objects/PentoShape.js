@@ -8,7 +8,7 @@ export class Shape {
         this.type = type;
         this.color = color;
         this.rotation = rotation;
-        this.is_mirrored = is_mirrored || false;
+        this._is_mirrored = is_mirrored || false;
         this.writable = true;
         this.active = false;
         this.highlight = false;
@@ -29,6 +29,13 @@ export class Shape {
 
         // conntected shapes
         this.connected = [];
+
+        // shapes that don't have a mirrored version
+        this.SYMMETRIC_SHAPES = new Set(['I', 'T', 'U', 'V', 'W', 'X', 'point']);
+    }
+
+    get is_mirrored() {
+        return ( (!this.SYMMETRIC_SHAPES.has(this.type)) && this._is_mirrored );
     }
 
     /**
@@ -345,7 +352,7 @@ export class Shape {
         this.rotation = this._get_true_angle(angle);
         // use rearrange method if possible
         if (angle % 90 == 0) {
-            this.rotateByRearrange(angle);
+            this._rotateByRearrange(angle);
         } else {
             this._rotate_blocks(angle);
         }
@@ -376,11 +383,10 @@ export class Shape {
      * @param {turning angle, one of [90,-90,180,-180]} angle
      * @param {true to log the action to the changes array} track
      */
-    rotateByRearrange(angle, track) {
+    _rotateByRearrange(angle, track) {
         if (track != false) {
             this.changes.push({ 'name': 'rotate', 'angle': angle });
         }
-        this.rotation = this._get_true_angle(angle);
         // empty the grid (since the blocks will be rearranged)
         this._empty_grid();
         for (var i = 0; i < this.get_blocks().length; i++) {
@@ -411,7 +417,7 @@ export class Shape {
         }
         // redraw the black outline after block rearrangement
         this._update_outline();
-        this.is_mirrored = !this.is_mirrored;
+        this._is_mirrored = !this._is_mirrored;
     }
 
     /**
@@ -552,7 +558,7 @@ export class Shape {
      */
     copy(new_id) {
         var shape_copy = pento_create_shape(new_id, this.x, this.y, this.type, this.color,
-            this.is_mirrored, this.rotation, this.block_size);
+            this._is_mirrored, this.rotation, this.block_size);
         shape_copy.width = this.width;
         shape_copy.height = this.height;
         return shape_copy

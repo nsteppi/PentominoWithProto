@@ -8,6 +8,7 @@
 package furhatos.app.pentominowithfurhat
 
 
+
 class GameState {
 
     data class Info(
