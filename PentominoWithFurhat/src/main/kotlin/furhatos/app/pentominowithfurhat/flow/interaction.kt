@@ -11,7 +11,6 @@
 package furhatos.app.pentominowithfurhat.flow
 
 import furhatos.app.pentominowithfurhat.nlu.*
-import furhatos.event.Event
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures.BigSmile
 import furhatos.gestures.Gestures.BrowFrown
@@ -23,7 +22,6 @@ import furhatos.gestures.Gestures.Thoughtful
 import furhatos.gestures.Gestures.Wink
 import furhatos.nlu.common.*
 import furhatos.records.Location
-import khttp.async
 
 
 const val maxPieces = 12  // how many PentoPieces are on the board at game start
