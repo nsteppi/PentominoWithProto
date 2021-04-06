@@ -11,8 +11,8 @@
 package furhatos.app.pentominowithfurhat.flow
 
 import furhatos.app.pentominowithfurhat.nlu.*
-import furhatos.event.Event
 import furhatos.flow.kotlin.*
+import furhatos.gestures.Gestures
 import furhatos.gestures.Gestures.BigSmile
 import furhatos.gestures.Gestures.BrowFrown
 import furhatos.gestures.Gestures.BrowRaise
@@ -23,7 +23,6 @@ import furhatos.gestures.Gestures.Thoughtful
 import furhatos.gestures.Gestures.Wink
 import furhatos.nlu.common.*
 import furhatos.records.Location
-import khttp.async
 
 
 const val maxPieces = 12  // how many PentoPieces are on the board at game start
@@ -200,7 +199,7 @@ val GatherInformation : State = state(GameRunning) {
         furhat.glance(leftBoard)
         users.current.roundKnowledge = KnowledgeBase()
         if (users.current.state.size == maxPieces || users.current.state.size <= 0) {
-            furhat.ask("Which piece do you want to start with?", timeout = 20000)
+            furhat.ask("Which piece do you want to start with?", endSil = 1250, timeout = 20000)
         } else {
             if (users.current.state.size == 1) {
                 furhat.say("Only one piece to go.")
@@ -217,7 +216,7 @@ val GatherInformation : State = state(GameRunning) {
                         +"New description, please!"
                         +"Elaborate on another piece, please."
                     }
-                }, timeout = 20000)
+                }, endSil = 1250, timeout = 20000)
             }
         }
     }
@@ -238,14 +237,15 @@ val GatherInformation : State = state(GameRunning) {
         users.current.roundKnowledge.position = Positions.toCompPosition(it.findAll(Positions()))
         if (users.current.roundKnowledge == KnowledgeBase()) {
             furhat.gesture(Thoughtful, async=false)
-            furhat.ask{
+            furhat.gesture(listOf(Thoughtful, BrowFrown, awaitAnswer(duration=5.0)).shuffled().take(1)[0], async = false)
+            furhat.ask({
                 random{
                     +"I didn't get it. Which piece did you talk about?"
                     +"Sorry. I didn't understand. What piece?"
                     +"Could you rephrase that?"
                     +"I am having trouble understanding. Please try again!"
                 }
-            }
+            }, endSil = 1250, timeout = 20000)
         }
         goto(SelectPiece)
     }
@@ -355,6 +355,7 @@ val SelectPiece : State = state(GameRunning) {
                 furhat.gesture(BrowFrown, async = false)
                 furhat.say(
                         "I am sorry, but a ${users.current.roundKnowledge} does not exist.")
+                delay(1000)
                 goto(GatherInformation)
             }
         }
@@ -429,9 +430,9 @@ val GetInformation : State = state(GameRunning) {
         // check whether there was no color present more than once
         // if yes the attribute color can uniquely identify a piece
         if (remainingColors.size == users.current.candidates.size
-            && (users.current.roundKnowledge.color == null) //TODO: discuss with group
+            && (users.current.roundKnowledge.color == null)
         ) {
-            furhat.ask("Please, tell me about the exact color of the piece!")
+            furhat.ask("Please, tell me about the exact color of the piece!", endSil = 1250, timeout = 10000)
         }
         // create list of unique positions present for the candidates
         val remainingPositions = users.current.candidates.foldRight(listOf<String>()) {
@@ -439,12 +440,12 @@ val GetInformation : State = state(GameRunning) {
                                 (acc + Positions.toString(it.location)) else acc
         }
         if (remainingPositions.size == users.current.candidates.size
-            && (users.current.roundKnowledge.position == Positions()) //TODO: discuss with group
+            && (users.current.roundKnowledge.position == Positions())
         ) {
-            furhat.ask("Tell me about the exact position of the piece!")
+            furhat.ask("Tell me about the exact position of the piece!", endSil = 1250, timeout = 10000)
         }
         // assumption: shape is always unique, so we can use it if nothing else is
-        furhat.ask("Try to explain the shape of the piece with a letter.")
+        furhat.ask("Try to explain the shape of the piece with a letter.", endSil = 1250, timeout = 10000)
     }
 
     onResponse<Colors> {
@@ -458,8 +459,16 @@ val GetInformation : State = state(GameRunning) {
     }
 
     onResponse<Shapes> {
-        users.current.roundKnowledge.shape = it.intent
+        users.current.roundKnowledge.shape = Shapes.getShape(it.findAll(Shapes()), it.text)
+        if (users.current.roundKnowledge.shape == null) {
+            propagate()
+        }
         goto(SelectPiece)
+    }
+
+    onResponse {
+        furhat.say("Pardon?")
+        reentry()
     }
 }
 
@@ -491,6 +500,7 @@ val PieceSelected : State = state(GameRunning)  {
     onResponse<Yes> {
         furhat.attend(rightBoard)
         call(sendWait("startPlacing"))
+        furhat.glance(users.current)
         furhat.say {
             + "Ok."
             + BrowRaise
@@ -587,6 +597,11 @@ val GameFinished : State = state(GameRunning) {
         furhat.gesture(LookDown(duration = 0.3), async = false)
         furhat.say("Ok. Thank you for your time.")
         furhat.say("Bye bye!")
+        furhat.attendNobody()
+        goto(Idle)
+    }
+
+    onNoResponse {
         furhat.attendNobody()
         goto(Idle)
     }
