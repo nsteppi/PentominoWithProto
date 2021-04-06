@@ -81,17 +81,17 @@ class Shapes(
     }
 
     private fun isPronoun(sent: String): Boolean {
-        if (shape !in setOf("U", "I")) {
+        if (this.text !in setOf("U", "you", "eye", "I")) {
             return false
         }
         val regex = Regex(
-            """(letter ${this.text})""" +
+            """\b((letter ${this.text})""" +
                     """|(character ${this.text})""" +
                     """|((a|(an)|(the)) (\w* ){0,2}${this.text})""" +
                     """|(capital (case)? ${this.text})""" +
                     """|(uppercase ${this.text})""" +
                     """|(of ${this.text})""" +
-                    """|(${this.text} shaped?)""" +
+                    """|(${this.text} shaped?))\b""" +
                     """|(^${this.text}$)""", RegexOption.IGNORE_CASE
         )
         if (regex.containsMatchIn(sent)) {
@@ -123,19 +123,19 @@ class Shapes(
 
 val ShapeGrammarEn =
     grammar {
-        rule(public = true) {
-            +("column"/"eye"/"I"/"line"/"long"/"pipe"/"ruler"/"stick"/"tube") tag {"I"}
-            +("bird"/"F"/"flower") tag {"F"}
-            +("hook"/"L") tag {"L"}
-            +("chair"/"coiling tube"/"duck"/"N"/"torch"/"winding pipe") tag {"N"}
-            +("block"/"open box"/"opened box"/"P"/"pea"/"pee"/"square") tag {"P"}
-            +("candle"/"hammer"/"T"/"tea"/"tee"/"tower"/"tree") tag {"T"}
-            +("bowl"/"box"/"bridge"/"c"/"cup"/"gate"/"U"/"you") tag {"U"}
-            +("angle"/"right angle"/"roof"/"tick"/"V") tag {"V"}
-            +("stairs"/"W"/"steps") tag {"W"}
-            +("X"/"cross"/"plus"/"star") tag {"X"}
-            +("hydrant"/"lego"/"pump"/"tap"/"water tap"/"why"/"Y") tag {"Y"}
-            +("duck"/"mirrored S"/"reflected S"/"S"/"swan"/"Z") tag {"Z"}
+        rule("shape", public = true) {
+            +("column" / "eye" / "I" / "I-shaped" / "line" / "long" / "pipe" / "ruler" / "stick" / "tube") tag { "I" }
+            +("bird" / "F" / "F-shaped" / "flower") tag { "F" }
+            +("hook" / "L" / "L-shaped") tag { "L" }
+            +("chair" / "coiling tube" / "duck" / "N" / "N-shaped" / "torch" / "winding pipe") tag { "N" }
+            +("block" / "open box" / "opened box" / "P" / "P-shaped" / "pea" / "pee" / "square") tag { "P" }
+            +("candle" / "hammer" / "T" / "T-shaped" / "tea" / "tee" / "tower" / "tree") tag { "T" }
+            +("bowl" / "box" / "bridge" / "C" / "C-shaped" / "cup" / "gate" / "U" / "U-shaped" / "you") tag { "U" }
+            +("angle" / "right angle" / "roof" / "tick" / "V" / "V-shaped") tag { "V" }
+            +("stairs" / "steps" / "W" / "W-shaped") tag { "W" }
+            +("cross" / "plus" / "star"/ "X" / "X-shaped") tag { "X" }
+            +("hydrant" / "lego" / "pump" / "tap" / "water tap" / "why" / "Y" / "Y-shaped") tag { "Y" }
+            +("duck" / "mirrored S" / "reflected S" / "S" / "S-shaped" / "swan" / "Z" / "Z-shaped") tag { "Z" }
         }
     }
 

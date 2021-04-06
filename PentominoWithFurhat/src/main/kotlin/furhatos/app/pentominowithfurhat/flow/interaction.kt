@@ -11,6 +11,7 @@
 package furhatos.app.pentominowithfurhat.flow
 
 import furhatos.app.pentominowithfurhat.nlu.*
+import furhatos.event.Event
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures.BigSmile
 import furhatos.gestures.Gestures.BrowFrown
@@ -22,6 +23,7 @@ import furhatos.gestures.Gestures.Thoughtful
 import furhatos.gestures.Gestures.Wink
 import furhatos.nlu.common.*
 import furhatos.records.Location
+import khttp.async
 
 
 const val maxPieces = 12  // how many PentoPieces are on the board at game start
@@ -31,8 +33,8 @@ const val maxPieces = 12  // how many PentoPieces are on the board at game start
 // y: difference between eye level of the robot and level of the object
 // e.g. given my eye level is 1.50m, if I want to describe the position of something on the ground y would be -1.50m
 // z: how far in front of the robot
-val leftBoard = Location(0.1, -0.35, 1.0)
-val rightBoard = Location(-0.1, -0.35, 1.0)
+val leftBoard = Location(-0.1, -0.35, 1.0)
+val rightBoard = Location(0.1, -0.35, 1.0)
 
 
 /**
@@ -163,11 +165,10 @@ val Explanation : State = state(Interaction) {
     }
 
     onResponse {
-        furhat.say {
+        furhat.ask {
             random {
                 +"Sorry, say that again please."
-                +"Would you like to hear the explanation again?"
-                +"Excuse me? Do you want me to repeat?"
+                +"I don't have to repeat, is that correct?"
             }
         }
     }
@@ -202,22 +203,25 @@ val GatherInformation : State = state(GameRunning) {
             furhat.ask("Which piece do you want to start with?", timeout = 20000)
         } else {
             if (users.current.state.size == 1) {
-                furhat.ask("Only one piece to go.", timeout = 20000)
+                furhat.say("Only one piece to go lilo.")
+                send("selectPiece", mapOf("piece" to users.current.state[0].name))
+                furhat.attend(leftBoard)
+                goto(PieceSelected) //TODO: keine abfrage
             } else {
                 furhat.ask({
                     random {
                         +"Which piece do you want to select?"
                         +"Please describe a piece to me!"
-                        +"We have arrived at piece number ${(maxPieces - users.current.state.size) + 1}"
-                        +"Please describe the next piece."
-                        +"Next description, please!"
-                        +"This game is so fun. Elaborate on the next piece, please."
+                        +"We already made it to piece number ${(maxPieces - users.current.state.size) + 1}. What's next?"
+                        +"Please describe another piece."
+                        +"New description, please!"
+                        +"Elaborate on another piece, please."
                     }
                 }, timeout = 20000)
             }
         }
     }
-
+/**
     onResponse<Last> {
         if (users.current.state.size == 1) {
             send("selectPiece", mapOf("piece" to users.current.state[0].name))
@@ -225,7 +229,7 @@ val GatherInformation : State = state(GameRunning) {
             goto(PieceSelected)
         }
         propagate()  // enter the onResponse block below
-    }
+    }*/
 
     onResponse {
         users.current.candidates = users.current.state
@@ -279,6 +283,7 @@ val SelectPiece : State = state(GameRunning) {
 
     // apply filters to candidates, if a filter is too strict (no remaining candidates) it is ignored
     onEntry {
+        var ignoredInformation = false
         furhat.attend(leftBoard)
         users.current.candidates  = users.current.state
         // collect pieces matching the extracted vague color category
@@ -289,6 +294,9 @@ val SelectPiece : State = state(GameRunning) {
             if (newCandidates.isNotEmpty()) {
                 users.current.candidates = newCandidates
             }
+            else {
+                ignoredInformation = true
+            }
         }
         // additionally remove all pieces the position of which does not match the extracted one
         if (users.current.roundKnowledge.position != Positions()) {
@@ -298,6 +306,9 @@ val SelectPiece : State = state(GameRunning) {
             if (newCandidates.isNotEmpty()) {
                 users.current.candidates = newCandidates
             }
+            else {
+                ignoredInformation = true
+            }
         }
         // additionally remove all pieces the shape of which does not match the extracted one
         if (users.current.roundKnowledge.shape != null) {
@@ -306,6 +317,9 @@ val SelectPiece : State = state(GameRunning) {
             }
             if (newCandidates.isNotEmpty()) {
                 users.current.candidates = newCandidates
+            }
+            else {
+                ignoredInformation = true
             }
         }
         // finally remove all pieces the exact color of which does not match the extracted one
@@ -320,9 +334,29 @@ val SelectPiece : State = state(GameRunning) {
 
         if (users.current.candidates.size == 1) {
             send("selectPiece", mapOf("piece" to users.current.candidates[0].name))
+            println(ignoredInformation.toString())
+            if (ignoredInformation) {
+                furhat.say(
+                    "I could not find the ${users.current.roundKnowledge}."
+                )
+                furhat.say(
+                    "But I found the ${users.current.candidates[0].color} " +
+                            "${users.current.candidates[0].type} piece " +
+                            "${Positions.toString(users.current.candidates[0].location)}."
+                )
+            }
             goto(PieceSelected)
         } else {
-            goto(VerifyInformation)
+            if (!ignoredInformation) {
+                goto(VerifyInformation)
+            }
+            else {
+                furhat.attend(users.current)
+                furhat.gesture(BrowFrown, async = false)
+                furhat.say(
+                        "I am sorry, but a ${users.current.roundKnowledge} does not exist.")
+                goto(GatherInformation)
+            }
         }
     }
 
@@ -353,9 +387,7 @@ val VerifyInformation : State = state(GameRunning) {
         furhat.say("Here is, what I have:")
         furhat.glance(users.current)
         furhat.say(
-            "We are looking for a ${users.current.roundKnowledge.color?: run {""}} "+
-                "${users.current.roundKnowledge.shape?: run {""}} piece " +
-                "${users.current.roundKnowledge.position?.toString(detailed = true)}.")
+            "We are looking for a ${users.current.roundKnowledge}.")
         furhat.attend(users.current)
         furhat.ask("Any wrong information?")
     }
@@ -365,9 +397,9 @@ val VerifyInformation : State = state(GameRunning) {
         furhat.glance(leftBoard)
         furhat.say {
             random {
-                +"Oh I am sorry! Can we try another piece? "
-                +"Sorry, I got confused. Try again."
-                +"Oh look! A butterfly! What did you say?"
+                +"Oh I am sorry!"
+                +"Sorry, I got confused."
+                +"Oh look! A butterfly!"
             }
         }
         goto(GatherInformation)
@@ -457,7 +489,7 @@ val PieceSelected : State = state(GameRunning)  {
     }
 
     onResponse<Yes> {
-        furhat.glance(rightBoard, 1500)
+        furhat.attend(rightBoard)
         call(sendWait("startPlacing"))
         furhat.say {
             + "Ok."
@@ -467,6 +499,7 @@ val PieceSelected : State = state(GameRunning)  {
                 +"What a lovely choice."
                 +"I have placed the piece for you."
                 +"We are making progress."
+                +"This game is so fun."
             }
         }
         furhat.attend(users.current)
@@ -480,11 +513,11 @@ val PieceSelected : State = state(GameRunning)  {
         delay(1500)
         furhat.say {
             random {
-                +"Oh sorry, I misunderstood! Please try again."
-                +"Shame! Can we try again?"
+                +"Oh sorry, I misunderstood!"
+                +"Shame!"
                 +"No? Ok, give me another chance, please!"
-                +"Hm! Maybe try another piece?"
-                +"We all make mistakes. Let's try another piece!"
+                +"Hm!"
+                +"We all make mistakes."
             }
         }
         goto(GatherInformation)
@@ -504,11 +537,11 @@ val PieceSelected : State = state(GameRunning)  {
  * Enter while: *unclear*
  * Leave while: Attending User or Nobody(-> Idle)
  */
-val GameFinished : State = state(Interaction) {
+val GameFinished : State = state(GameRunning) {
 
     onEntry {
         furhat.attend(users.current)
-        furhat.glance(rightBoard)
+        furhat.glance(rightBoard, 2000)
         if (users.current.state.isEmpty()) {
             // wait for furhat to stop speaking
             while (furhat.isSpeaking()) {
@@ -551,7 +584,7 @@ val GameFinished : State = state(Interaction) {
 
     onResponse<No> {
         users.current.saidNo = true
-        furhat.gesture(Smile, async=false)
+        furhat.gesture(LookDown(duration = 0.3), async = false)
         furhat.say("Ok. Thank you for your time.")
         furhat.say("Bye bye!")
         furhat.attendNobody()
