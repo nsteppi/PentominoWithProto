@@ -1,5 +1,6 @@
 import {grid_cell_to_coordinates} from "./HelperDrawingBoard";
 import {pento_create_shape} from "./HelperPentoShapes";
+import {PentoConfig} from "../config";
 
 export const configPerShape = (shape, n_blocks) => {
 
@@ -43,7 +44,6 @@ export const configPerShape = (shape, n_blocks) => {
  * This generates all shapes that are required to fill the elephant
  */
 export const generateElephantShape = (shape, pento_config, grid_config) => {
-
     // set value ranges for random selection
     const columns =			[...Array(grid_config.n_blocks).keys()];
     const rows =				[...Array(grid_config.n_blocks).keys()];
@@ -53,22 +53,29 @@ export const generateElephantShape = (shape, pento_config, grid_config) => {
     const pento_types =		pento_config.get_pento_types();
 
     let generated_shapes = 	[];
+    let template_shapes = [];
 
     for (let id=0; id<pento_types.length; id++) {
         let rand_color = colors[Math.floor(Math.random() * colors.length)];
+        // while rand_color grey choose new color
+        while (pento_config.get_color_name(rand_color) == pento_config.templ_col) {
+            rand_color = colors[Math.floor(Math.random() * colors.length)];
+        }
 
         const pento_types =		pento_config.get_pento_types();
         let pento_piece = pento_types[id]
 
-
         let new_shape = createNewPentoPieceInShape(shape, grid_config, pento_piece, rand_color, id);
+        let new_template = createNewPentoPieceInShape(shape, grid_config, pento_piece, pento_config.get_hex_code(pento_config.templ_col), id);
         generated_shapes.push(new_shape.copy(id));
+        template_shapes.push(new_template.copy(generated_shapes.length + id));
     }
+
 
     // now move, rotate, flip shape randomly to create initial board
     create_initial_state(generated_shapes, ['rotate', 'move', 'flip'], grid_config);
 
-    return generated_shapes
+    return [generated_shapes, template_shapes];
 };
 
 export const createNewPentoPieceInShape = (shape, grid_config, pento_piece, color, id) => {

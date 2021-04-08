@@ -270,7 +270,8 @@ const App = () => {
    * Rendert die Buttons unter dem Game-Board, mit denen zu Testzwecken einzelne Teile ausgewählt werden können.
    */
   const renderButtons = () => {
-    return initialShapes.concat(placedShapes).sort().map(element => {
+    return initialShapes.concat(placedShapes.filter(s => s.color == pento_config.templ_col)
+    ).sort().map(element => {
       return <button id={"pento_" + element.type}
                      style={{ visibility: gameState.correctly_placed.find(shape => shape.name == element.name)?'hidden':'visible'}}
                      onClick={() => {
@@ -482,7 +483,15 @@ const App = () => {
 
     // ALle aktuell ausgewählten Spielsteine löschen
     setActiveShape([]);
-    setInitialShapes(generateElephantShape("elephant", pento_config, grid_config));
+    let [origin, goal] = generateElephantShape("elephant", pento_config, grid_config);
+    setInitialShapes(origin);
+
+    if (pento_config.provide_template) {
+      setPlacedShapes(goal);
+      for (let temp_piece of goal) {
+        dispatch({type: 'pieceAtGoal', piece: temp_piece})
+      }
+    }
 
     dispatch({type: 'gameStart'})
     if (gameTimeHandler.current){
@@ -580,7 +589,8 @@ const App = () => {
   useEffect(() => {
     // Wenn auf beiden Boards keine Steine mehr verfügbar sind (alle korrekt plaziert sind)
     // und das Spiel noch läuft, haben wir gewonnen
-    if (gameState.game.status === 'ongoing' && gameState.correctly_placed?.length === 12) {
+    if (gameState.game.status === 'ongoing'
+        && gameState.correctly_placed?.length === 2*pento_config.get_pento_types().length) {
       dispatch({type: 'gameWon'});
     }
 
@@ -722,7 +732,6 @@ const App = () => {
           <div className="six columns">
           </div>
           <div className="six columns">
-            <div>Tets</div>
             <div style={{ color: "#555", fontSize: "16px" }}>Game State: {gameState.game.status}</div>
             <div style={{ color: "#555", fontSize: "16px" }}>Remaining Game Time: {gameState.game.time}</div>
           </div>

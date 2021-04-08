@@ -384,7 +384,7 @@ val VerifyInformation : State = state(GameRunning) {
 
     onEntry {
         furhat.glance(users.current)
-        furhat.say("Ok. I seem to have missed out on some information.")
+        furhat.say("Ok. I seem to be missing some information.")
         furhat.say("Here is, what I have:")
         furhat.glance(users.current)
         furhat.say(
