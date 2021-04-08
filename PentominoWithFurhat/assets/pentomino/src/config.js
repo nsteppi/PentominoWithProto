@@ -19,9 +19,12 @@ export class PentoConfig {
             '#99BBDD': 'light blue',
             '#336699': 'dark blue',
             '#5CD6D6': 'turquoise',
-            '#FFB366': 'orange'
+            '#FFB366': 'orange',
+            '#e8e8e8': 'gray'
         };
 
+        this.templ_col = 'gray'
+        this.provide_template = true
         this.board_size = board_size;
         this.n_blocks = n_blocks;
         this.block_size = board_size / n_blocks;
@@ -49,6 +52,15 @@ export class PentoConfig {
 
     get_color_name(color_code) {
         return this.color_map[color_code]
+    }
+
+    get_hex_code(color_name) {
+        for (let c in this.color_map) {
+            if (this.color_map[c] == color_name) {
+                return c
+            }
+        }
+        return "" //TODO: throw error
     }
 
     /**
