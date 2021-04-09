@@ -76,16 +76,14 @@ val Idle: State = state {
 
     init {
         // voice setting
-        if (PollyNeuralVoice.Matthew().isAvailable) {
-            val yourFriendMatthew = PollyNeuralVoice.Matthew()
-            yourFriendMatthew.style = PollyNeuralVoice.Style.Conversational
-            furhat.setVoice(yourFriendMatthew)
-        } else {
-            furhat.setVoice(Language.ENGLISH_US, Gender.MALE)
-        }
+        delay(1000) //TODO hotfix
+        println(PollyNeuralVoice.toString())
+        println("if")
+        val yourFriendMatthew = PollyNeuralVoice.Matthew()
+        yourFriendMatthew.style = PollyNeuralVoice.Style.Conversational
+        furhat.setVoice(yourFriendMatthew)
         // texture setting
         furhat.setTexture("Proto")
-
         if (users.count > 0) {
             furhat.attend(users.random)
             goto(Greeting)

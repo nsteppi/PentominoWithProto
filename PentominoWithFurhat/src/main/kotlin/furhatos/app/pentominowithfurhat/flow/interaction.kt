@@ -32,8 +32,8 @@ const val maxPieces = 12  // how many PentoPieces are on the board at game start
 // y: difference between eye level of the robot and level of the object
 // e.g. given my eye level is 1.50m, if I want to describe the position of something on the ground y would be -1.50m
 // z: how far in front of the robot
-val leftBoard = Location(-0.1, -0.35, 1.0)
-val rightBoard = Location(0.1, -0.35, 1.0)
+val leftBoard = Location(-0.14, -0.36, 0.45)
+val rightBoard = Location(0.14, -0.36, 0.45)
 
 
 /**
@@ -298,10 +298,10 @@ val SelectPiece : State = state(GameRunning) {
                 ignoredInformation = true
             }
         }
-        // additionally remove all pieces the position of which does not match the extracted one
-        if (users.current.roundKnowledge.position != Positions()) {
+        // additionally remove all pieces the shape of which does not match the extracted one
+        if (users.current.roundKnowledge.shape != null) {
             val newCandidates = users.current.candidates.filter {
-                    candi -> users.current.roundKnowledge.position!!.includedIn(candi.location)
+                    candi -> candi.type == users.current.roundKnowledge.shape!!.shape
             }
             if (newCandidates.isNotEmpty()) {
                 users.current.candidates = newCandidates
@@ -310,10 +310,10 @@ val SelectPiece : State = state(GameRunning) {
                 ignoredInformation = true
             }
         }
-        // additionally remove all pieces the shape of which does not match the extracted one
-        if (users.current.roundKnowledge.shape != null) {
+        // additionally remove all pieces the position of which does not match the extracted one
+        if (users.current.roundKnowledge.position != Positions()) {
             val newCandidates = users.current.candidates.filter {
-                    candi -> candi.type == users.current.roundKnowledge.shape!!.shape
+                    candi -> users.current.roundKnowledge.position!!.includedIn(candi.location)
             }
             if (newCandidates.isNotEmpty()) {
                 users.current.candidates = newCandidates
@@ -384,7 +384,7 @@ val VerifyInformation : State = state(GameRunning) {
 
     onEntry {
         furhat.glance(users.current)
-        furhat.say("Ok. I seem to have missed out on some information.")
+        furhat.say("Ok. I seem to be missing some information.")
         furhat.say("Here is, what I have:")
         furhat.glance(users.current)
         furhat.say(

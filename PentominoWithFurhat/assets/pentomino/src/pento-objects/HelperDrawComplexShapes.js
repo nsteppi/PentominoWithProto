@@ -1,6 +1,10 @@
 import {grid_cell_to_coordinates} from "./HelperDrawingBoard";
 import {pento_create_shape} from "./HelperPentoShapes";
 
+const seedrandom = require('seedrandom')
+seedrandom('limone', { global: true });
+
+
 const configPerShape = (shape, n_blocks) => {
 
     let shape_config = {"x": -1, "y": -1, "coords": {}}

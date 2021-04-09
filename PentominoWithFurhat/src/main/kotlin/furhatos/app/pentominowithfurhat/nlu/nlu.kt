@@ -44,7 +44,7 @@ class Colors(
         fun colorSuper(color: String): String? {
             val toSuper: HashMap<String, String> = hashMapOf(
                 "light blue" to "blue", "dark blue" to "blue", "turquoise" to "blue",
-                "light green" to "green", "dark green" to "green",
+                "light green" to "green", "dark green" to "green", "black" to "black",
                 "light red" to "red", "pink" to "red", "purple" to "red",
                 "yellow" to "yellow", "orange" to "orange", "beige" to "beige")
             return toSuper.get(color)
@@ -66,6 +66,7 @@ val ColorGrammarEn =
             +("light blue"/"baby blue"/"sky"/"arctic") tag { Colors(color="light blue", colorSuper="blue")}
             +("dark blue"/"azure"/"sapphire"/"royal"/"navy"/"denim"/"blue") tag { Colors(color="dark blue", colorSuper="blue")}
             +("turquoise"/"aqua"/"cyan") tag { Colors(color="turquoise", colorSuper="blue")}
+            +("black") tag {Colors(color="black", colorSuper="black")}
         }
     }
 
@@ -127,7 +128,7 @@ val ShapeGrammarEn =
             +("column" / "eye" / "I" / "I-shaped" / "line" / "long" / "pipe" / "ruler" / "stick" / "tube") tag { "I" }
             +("bird" / "F" / "F-shaped" / "flower") tag { "F" }
             +("hook" / "L" / "L-shaped") tag { "L" }
-            +("chair" / "coiling tube" / "duck" / "N" / "N-shaped" / "torch" / "winding pipe") tag { "N" }
+            +("chair" / "coiling tube" / "duck"/ "M" / "M-shaped" / "N" / "N-shaped" / "torch" / "winding pipe") tag { "N" }
             +("block" / "open box" / "opened box" / "P" / "P-shaped" / "pea" / "pee" / "square") tag { "P" }
             +("candle" / "hammer" / "T" / "T-shaped" / "tea" / "tee" / "tower" / "tree") tag { "T" }
             +("bowl" / "box" / "bridge" / "C" / "C-shaped" / "cup" / "gate" / "U" / "U-shaped" / "you") tag { "U" }
