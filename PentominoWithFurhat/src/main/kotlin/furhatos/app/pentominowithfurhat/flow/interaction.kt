@@ -504,6 +504,7 @@ val PieceSelected : State = state(GameRunning)  {
         furhat.say {
             + "Ok."
             + BrowRaise
+            + Smile
             random {
                 +"Great choice."
                 +"What a lovely choice."

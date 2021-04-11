@@ -270,7 +270,7 @@ const App = () => {
    * Rendert die Buttons unter dem Game-Board, mit denen zu Testzwecken einzelne Teile ausgewählt werden können.
    */
   const renderButtons = () => {
-    return initialShapes.concat(placedShapes.filter(s => s.color == pento_config.templ_col)
+    return initialShapes.concat(placedShapes.filter(s => pento_config.get_color_name(s.color) != pento_config.templ_col)
     ).sort().map(element => {
       return <button id={"pento_" + element.type}
                      style={{ visibility: gameState.correctly_placed.find(shape => shape.name == element.name)?'hidden':'visible'}}
@@ -464,8 +464,8 @@ const App = () => {
       let new_y = Math.max(active.y, grid_config.y + 2*grid_config.block_size);
       new_y   = Math.min(new_y, grid_config.board_size - 2*grid_config.block_size);
       // Stein auf einem Quadrat einrasten lassen
-      new_x = Math.floor((new_x - grid_config.x) / grid_config.block_size) * grid_config.block_size;
-      new_y = Math.floor((new_y - grid_config.y) / grid_config.block_size) * grid_config.block_size;
+      new_x = Math.floor(((new_x - grid_config.x) / grid_config.block_size) + 0.5) * grid_config.block_size;
+      new_y = Math.floor(((new_y - grid_config.y) / grid_config.block_size) + 0.5) * grid_config.block_size;
       active.moveTo(new_x, new_y);
       dispatch({type: 'updateCoords', x:new_x, y:new_y});
     } else {
@@ -590,7 +590,7 @@ const App = () => {
     // Wenn auf beiden Boards keine Steine mehr verfügbar sind (alle korrekt plaziert sind)
     // und das Spiel noch läuft, haben wir gewonnen
     if (gameState.game.status === 'ongoing'
-        && gameState.correctly_placed?.length === 2*pento_config.get_pento_types().length) {
+        && gameState.correctly_placed?.length === (1 + (pento_config.provide_template ? 1 : 0))*pento_config.get_pento_types().length) {
       dispatch({type: 'gameWon'});
     }
 
