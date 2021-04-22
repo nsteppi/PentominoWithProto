@@ -11,6 +11,7 @@
 package furhatos.app.pentominowithfurhat.flow
 
 import furhatos.app.pentominowithfurhat.GameState
+import furhatos.app.pentominowithfurhat.SharedKnowledge
 import furhatos.flow.kotlin.NullSafeUserDataDelegate
 import furhatos.flow.kotlin.UserDataDelegate
 import furhatos.records.User
@@ -24,9 +25,11 @@ var User.rand_piece_loc by NullSafeUserDataDelegate { GameState.Location(-1,-1) 
 
 // knowledge extracted from user input and its consequences for to the state
 // renewed every round
-var User.state : List<GameState.PentoPiece> by NullSafeUserDataDelegate { listOf<GameState.PentoPiece>()}
-var User.candidates : List<GameState.PentoPiece> by NullSafeUserDataDelegate { listOf<GameState.PentoPiece>() }
-var User.roundKnowledge by NullSafeUserDataDelegate { KnowledgeBase() }
+var User.left_state : List<GameState.PentoPiece> by NullSafeUserDataDelegate { listOf<GameState.PentoPiece>()}
+var User.right_state : List<GameState.PentoPiece> by NullSafeUserDataDelegate { listOf<GameState.PentoPiece>()}
+var User.selected : String by NullSafeUserDataDelegate { "" }
+var User.candidates : MutableList<GameState.PentoPiece> by NullSafeUserDataDelegate { mutableListOf<GameState.PentoPiece>() }
+var User.roundKnowledge by NullSafeUserDataDelegate { SharedKnowledge() }
 
 // stores previous user attitude
 var User.saidNo by NullSafeUserDataDelegate { false }
