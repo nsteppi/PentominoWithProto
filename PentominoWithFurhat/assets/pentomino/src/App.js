@@ -347,6 +347,7 @@ const App = () => {
       // evtl. stattfindende Bewegung anhalten, aber für eine flüssige Richtungsänderung
       // Stein nicht ein
       stopMove(false);
+      //let dist_y = pento_config.board_size/2 - active.location.y;
       // setInterval wird genutzt, um die Funktion moveActive in regelmäßigen Abständen auszuführen
       switch (dir) {
         case 'up':
@@ -360,6 +361,12 @@ const App = () => {
           break;
         case 'right':
           moveHandler.current = setInterval(moveActive, interval, step, 0);
+          break;
+        case 'middle':
+          let active = activeShape[0];
+          let dist_x = pento_config.board_size/2 - active.x;
+          let dist_y = pento_config.board_size/2 - active.y;
+          moveHandler.current = setInterval(moveActive, interval, step, step*Math.abs(dist_y/dist_x));
           break;
         default:
           console.log(`Unknown direction: ${dir} at startMove`);
@@ -661,7 +668,7 @@ const App = () => {
    */
   useEffect(() => {
     sendDataToFurhat()
-  }, [gameState.game.time, gameState.correctly_placed]);
+  }, [gameState.game.time, gameState.correctly_placed, gameState.left_board]);
 
   /**
    * Wenn die Web-UI initialisiert wird, verbinden wir uns mit dem Roboter.

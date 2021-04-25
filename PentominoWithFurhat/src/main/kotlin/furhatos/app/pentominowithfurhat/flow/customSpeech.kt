@@ -14,7 +14,7 @@ import furhatos.flow.kotlin.Furhat
 import furhatos.flow.kotlin.voice.PollyNeuralVoice
 
 
-// a mixture of disappointed and sad but mainly spiritless
+/** a mixture of disappointed and sad but mainly spiritless */
 fun Furhat.deflated(text: String) {
     say(voice.prosody(
         PollyNeuralVoice.Matthew().whisper(text),
@@ -24,16 +24,16 @@ fun Furhat.deflated(text: String) {
     )
 }
 
-// the sound you make when you want someone to be quiet
+/** the sound you make when you want someone to be quiet */
 fun Furhat.hush() {
     say(voice.prosody(
-        PollyNeuralVoice.Matthew().whisper("tsche"),
-        rate = 0.4
-    )
+            PollyNeuralVoice.Matthew().whisper("tsche"),
+            rate = 0.4
+        )
     )
 }
 
-// audible breathing sound
+/** audible breathing sound */
 fun Furhat.sigh() {
     say(voice.prosody(
         PollyNeuralVoice.Matthew().whisper("hou..."),

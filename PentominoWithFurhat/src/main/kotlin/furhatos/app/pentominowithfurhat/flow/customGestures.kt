@@ -17,7 +17,7 @@ import java.util.*
 
 /** custom static gestures */
 
-// head and gaze are turned to furhat's right then to his left
+/** head and gaze are turned to furhat's right then to his left */
 val LookAround = defineGesture("lookAround") {
     frame(0.5, 3.0) {
         BasicParams.NECK_PAN to -20.0
@@ -32,17 +32,7 @@ val LookAround = defineGesture("lookAround") {
     reset(6.5)
 }
 
-// bow head to the front and look down
-fun LookDown(strength: Double = 1.0, duration: Double = 1.0) =
-    defineGesture("lookDown", strength, duration) {
-        frame(0.5, 4.5) {
-            BasicParams.NECK_TILT to 10.0
-            BasicParams.LOOK_DOWN to 10.0
-        }
-        reset(5.0)
-    }
-
-// reset all parameters of the gestures used in Idle
+/** reset all parameters of the gestures used in Idle */
 val ReturnToNormal = defineGesture("ReturnToNormal") {
     frame(0.5) {
         BasicParams.NECK_PAN to 0
@@ -54,7 +44,7 @@ val ReturnToNormal = defineGesture("ReturnToNormal") {
     }
 }
 
-// angle head to furhat's right accompanied with a slight smile
+/** angle head to furhat's right accompanied with a slight smile */
 val EmpatheticSmile = defineGesture("EmpatheticSmile") {
     frame(0.5, 4.5) {
         BasicParams.NECK_ROLL to 15.0
@@ -66,8 +56,10 @@ val EmpatheticSmile = defineGesture("EmpatheticSmile") {
 
 /** custom function gestures */
 
-// angle head to furhat's left and lift his right brow -> attentive
-// weaker alternative: questioning
+/**
+ * angle head to furhat's left and lift his right brow -> attentive
+ * weaker alternative: questioning
+ */
 fun awaitAnswer(strength: Double = 1.0, duration: Double = 1.0) =
     defineGesture("awaitAnswer", strength, duration) {
         frame(0.1, 0.5) {
@@ -80,8 +72,10 @@ fun awaitAnswer(strength: Double = 1.0, duration: Double = 1.0) =
         reset(0.7)
     }
 
-// push lips together and lift furhat's right brow
-// stronger alternative: awaitAnswer
+/**
+ * push lips together and lift furhat's right brow
+ * stronger alternative: awaitAnswer
+ */
 fun questioning(strength: Double = 1.0, duration: Double = 1.0) =
     defineGesture("Questioning", strength, duration) {
         frame(0.1, 0.5) {
@@ -94,7 +88,7 @@ fun questioning(strength: Double = 1.0, duration: Double = 1.0) =
         reset(0.7)
     }
 
-// wide open-mouthed smile full of excitement
+/** wide open-mouthed smile full of excitement */
 fun happy(strength: Double = 1.0, duration: Double = 1.0) =
     defineGesture("happy", strength, duration) {
         frame(0.4, 0.6) {
@@ -108,7 +102,7 @@ fun happy(strength: Double = 1.0, duration: Double = 1.0) =
         reset(1.0)
     }
 
-// angle head to furhat's left, press lips together, narrow eyes and avoid eye contact
+/** angle head to furhat's left, press lips together, narrow eyes and avoid eye contact */
 fun hurt(strength: Double = 1.0, duration: Double = 1.0) =
     defineGesture("hurt", strength, duration) {
         frame(0.1, 0.5) {
@@ -123,4 +117,14 @@ fun hurt(strength: Double = 1.0, duration: Double = 1.0) =
             BasicParams.PHONE_F_V to 20.0
         }
         reset(0.7)
+    }
+
+/** bow head to the front and look down */
+fun lookDown(strength: Double = 1.0, duration: Double = 1.0) =
+    defineGesture("lookDown", strength, duration) {
+        frame(0.5, 4.5) {
+            BasicParams.NECK_TILT to 10.0
+            BasicParams.LOOK_DOWN to 10.0
+        }
+        reset(5.0)
     }

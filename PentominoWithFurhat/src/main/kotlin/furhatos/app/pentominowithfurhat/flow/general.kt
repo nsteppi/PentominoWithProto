@@ -1,6 +1,6 @@
 /**
  * general.kt
- * Contains general states as a foundation to be extended in interaction.kt
+ * Contains general states as a foundation to be extended upon.
  *
  * Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
  * WiSe 20/21
@@ -12,52 +12,29 @@ package furhatos.app.pentominowithfurhat.flow
 
 import com.google.gson.Gson
 import furhatos.app.pentominowithfurhat.GameState
-import furhatos.app.pentominowithfurhat.nlu.Colors
-import furhatos.app.pentominowithfurhat.nlu.Positions
-import furhatos.app.pentominowithfurhat.nlu.Shapes
 import furhatos.flow.kotlin.*
 import furhatos.flow.kotlin.voice.PollyNeuralVoice
-import furhatos.gestures.Gestures
 import furhatos.gestures.Gestures.GazeAway
-import furhatos.nlu.common.No
-import furhatos.nlu.common.Yes
 import furhatos.skills.HostedGUI
 import furhatos.util.*
 
-// Defines pentomino Web-UI
+
+/** Defines Pentomino Web-UI */
 val GUI = HostedGUI("Pentomino", "assets/pentomino", 3000)
-var upToDate = true
-
-class KnowledgeBase(
-    var color: Colors? = null,
-    var shape: Shapes? = null,
-    var position: Positions = Positions()
-) {
-    override fun toString(): String {
-        return "${this.color?.color?: run {""}} "+
-                "${this.shape?.shape?: run {""}} piece " +
-                "${this.position?.toString(detailed = true)}"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        when (other) {
-            is KnowledgeBase -> {
-                return this.color == other.color
-                        && this.shape == other.shape
-                        && this.position == other.position
-            }
-            else -> return false
-        }
-    }
-}
+/** Defines whether Furhat is in sync with the Web-UI */
+var UPTODATE = true
 
 
-// wait after send until furhat info was updated
+/**
+ * Wait after send operation with objective [name]
+ * until furhat received an update on the game state.
+ */
 fun sendWait(name: String) = state(GameRunning){
+
     onEntry {
-        upToDate = false
+        UPTODATE = false
         send(name)
-        while (!upToDate){
+        while (!UPTODATE){
             delay(50)
         }
         terminate()
@@ -66,6 +43,8 @@ fun sendWait(name: String) = state(GameRunning){
 
 
 /**
+ * Furhat waits for a user.
+ *
  * Incoming Transitions from: GameFinished, Greeting, Start
  * Outgoing Transitions to: Greeting, Start
  *
@@ -84,21 +63,25 @@ val Idle: State = state {
             furhat.setVoice(Language.ENGLISH_US, Gender.MALE)
         }
         // texture setting
+        // this does not raise an error even if 'proto' is missing
         furhat.setTexture("Proto")
 
         if (users.count > 0) {
             furhat.attend(users.random)
             goto(Greeting)
         }
-
     }
 
     onTime(repeat=10000..15000) {
-        furhat.gesture(listOf(LookDown(), GazeAway, LookAround).shuffled().take(1)[0], async = false)
+        furhat.gesture(
+            listOf(lookDown(), GazeAway, LookAround).shuffled().take(1)[0],
+            async = false
+        )
     }
 
-    // First look for a users that has never declined furhat's request before
-    // if you can't find one, try to just choose any user
+     // Start by looking for a user that has never before declined
+     // furhat's invitation to play a game. If you can't find one,
+     // try to just choose any user.
     onTime(repeat=12000) {
         val newUsers = users.list.filterNot { it.saidNo }
         if (newUsers.isNotEmpty()) {
@@ -108,10 +91,9 @@ val Idle: State = state {
         }
         if (users.count > 0) {
             furhat.gesture(ReturnToNormal, priority = 2)
-            val randomUser = users.random
-            furhat.attend(randomUser)
+            furhat.attend(users.random)
             goto(Start)
-            }
+        }
     }
 
     onUserEnter {
@@ -127,6 +109,8 @@ val Idle: State = state {
 
 
 /**
+ * Furhat manages user arrival and departure.
+ *
  * Parent of: Explanation, GameFinished, GameRunning, Greeting, Start
  */
 val Interaction: State = state {
@@ -151,7 +135,11 @@ val Interaction: State = state {
         val oldUser = users.current
         furhat.attend(it)
         furhat.hush()
-        furhat.say(PollyNeuralVoice.Matthew().whisper("Please don't interrupt us."))
+        furhat.say(
+            PollyNeuralVoice.Matthew().whisper(
+                "We are playing a game. Please don't interrupt us."
+            )
+        )
         furhat.attend(oldUser)
         reentry()
     }
@@ -159,29 +147,35 @@ val Interaction: State = state {
 
 
 /**
+ * Furhat stays in contact with the Web-UI.
+ *
  * Parent of: GatherInformation, GetInformation, PieceSelected, SelectPiece, VerifyInformation
  */
 val GameRunning : State = state(Interaction) {
 
     onEvent("GameStateUpdate", instant = true) {
-        // get information from Web-UI and output them on the console for debugging purposes
+        // get information from Web-UI
         // transform json-structure received from the Web-UI to intern Kotlin-structure
         val gson = Gson()
-        val latestGameData:  GameState.Info = gson.fromJson(it.get("data").toString(), GameState.Info::class.java)
+        val latestGameData:  GameState.Info = gson
+            .fromJson(it.get("data").toString(), GameState.Info::class.java)
 
-        users.current.state = latestGameData.left_board
+        users.current.left_state = latestGameData.left_board
+        users.current.right_state = latestGameData.right_board
+        users.current.selected = latestGameData.selected
+
         // check game status to signal end of game if the case
         if (latestGameData.game.status in listOf("won","lost")) {
             goto(GameFinished)
         }
         // select and remember new random element
-        if (users.current.state.isNotEmpty()) {
-            val randomPiece = users.current.state.shuffled().take(1)[0]
+        if (users.current.left_state.isNotEmpty()) {
+            val randomPiece = users.current.left_state.shuffled().take(1)[0]
             users.current.rand_piece_name = randomPiece.name
             users.current.rand_piece_loc = randomPiece.location
             users.current.rand_piece_type = randomPiece.type
             users.current.rand_piece_color = randomPiece.color
         }
-        upToDate = true
+        UPTODATE = true
     }
 }
