@@ -29,7 +29,7 @@ var User.left_state : List<GameState.PentoPiece> by NullSafeUserDataDelegate { l
 var User.right_state : List<GameState.PentoPiece> by NullSafeUserDataDelegate { listOf<GameState.PentoPiece>()}
 var User.selected : String by NullSafeUserDataDelegate { "" }
 var User.candidates : MutableList<GameState.PentoPiece> by NullSafeUserDataDelegate { mutableListOf<GameState.PentoPiece>() }
-var User.roundKnowledge by NullSafeUserDataDelegate { SharedKnowledge() }
+var User.roundKnowledge : SharedKnowledge? by UserDataDelegate()
 
 // stores previous user attitude
 var User.saidNo by NullSafeUserDataDelegate { false }

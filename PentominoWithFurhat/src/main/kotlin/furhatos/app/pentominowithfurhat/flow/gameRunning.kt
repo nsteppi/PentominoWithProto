@@ -96,7 +96,7 @@ val GatherInformation : State = state(GameRunning) {
 
     onResponse {
         users.current.roundKnowledge = SharedKnowledge(it)
-        if (users.current.roundKnowledge.isEmpty()) {
+        if (users.current.roundKnowledge!!.isEmpty()) {
             furhat.gesture(
                 listOf(Gestures.Thoughtful, Gestures.BrowFrown, awaitAnswer(duration=5.0))
                     .shuffled().take(1)[0], async = false
@@ -114,12 +114,12 @@ val GatherInformation : State = state(GameRunning) {
         // reset the list of candidates
         users.current.candidates = users.current.left_state.toMutableList()
         // a first filtering based on the description
-        var ignoredInformation = users.current.roundKnowledge
+        var ignoredInformation = users.current.roundKnowledge!!
             .findCandidates(users.current.candidates)
         // gather additional information until sufficient or lacking integrity
         while (users.current.candidates.size > 1 && !ignoredInformation) {
             call(VerifyInformation)
-            ignoredInformation = users.current.roundKnowledge
+            ignoredInformation = users.current.roundKnowledge!!
                 .findCandidates(users.current.candidates)
         }
         if (users.current.candidates.size == 1) {
@@ -165,16 +165,6 @@ val GatherInformation : State = state(GameRunning) {
             "${users.current.rand_piece_type} piece " +
             "${Positions.toString(users.current.rand_piece_loc)} of the field.")
         goto(PieceSelected)
-    }
-
-    // no functionality except aid in debugging
-    onExit {
-        println("")
-        println("Extracted Intents:")
-        println("Exact Color: ${users.current.roundKnowledge.color?.color}")
-        println("Abstract Color: ${users.current.roundKnowledge.color?.colorSuper}")
-        println("Shape: ${users.current.roundKnowledge.shape}")
-        println("Position: ${users.current.roundKnowledge.position}")
     }
 }
 
@@ -224,7 +214,7 @@ val VerifyInformation : State = state(GameRunning) {
 
     onEvent("CorrectInfo") {
         furhat.gesture(EmpatheticSmile)
-        val dp = users.current.roundKnowledge
+        val dp = users.current.roundKnowledge!!
             .getDisambiguatingProperty(users.current.candidates)
         furhat.ask({
             random {
@@ -235,20 +225,20 @@ val VerifyInformation : State = state(GameRunning) {
     }
 
     onResponse<Colors> {
-        users.current.roundKnowledge.color = it.intent
+        users.current.roundKnowledge!!.color = it.intent
         terminate()
     }
 
     onResponse<Positions> {
-        users.current.roundKnowledge.position = Positions
+        users.current.roundKnowledge!!.position = Positions
             .toCompPosition(it.findAll(Positions()))
         terminate()
     }
 
     onResponse<Shapes> {
-        users.current.roundKnowledge.shape = Shapes
+        users.current.roundKnowledge!!.shape = Shapes
             .getShape(it.findAll(Shapes()), it.text)
-        if (users.current.roundKnowledge.shape == null) {
+        if (users.current.roundKnowledge!!.shape == null) {
             propagate()
         }
         terminate()

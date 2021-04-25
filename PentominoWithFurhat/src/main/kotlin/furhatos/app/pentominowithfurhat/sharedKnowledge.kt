@@ -11,9 +11,11 @@
 
 package furhatos.app.pentominowithfurhat
 
+import furhatos.app.pentominowithfurhat.flow.roundKnowledge
 import furhatos.app.pentominowithfurhat.nlu.Colors
 import furhatos.app.pentominowithfurhat.nlu.Positions
 import furhatos.app.pentominowithfurhat.nlu.Shapes
+import furhatos.flow.kotlin.users
 import furhatos.nlu.Response
 
 
@@ -27,17 +29,15 @@ import furhatos.nlu.Response
  * @param[response] Object created by an onResponse block
  * @constructor Structures and filters information from a piece description.
  */
-class SharedKnowledge(response: Response<*>? = null) {
+class SharedKnowledge(response: Response<*>) {
     var color: Colors? = null
     var shape: Shapes? = null
     var position: Positions = Positions()
 
     init {
-        if (response != null) {
-            this.color = response.findFirst(Colors())
-            this.shape = Shapes.getShape(response.findAll(Shapes()), response.text)
-            this.position = Positions.toCompPosition(response.findAll(Positions()))
-        }
+        this.color = response.findFirst(Colors())
+        this.shape = Shapes.getShape(response.findAll(Shapes()), response.text)
+        this.position = Positions.toCompPosition(response.findAll(Positions()))
     }
 
     /**
@@ -81,6 +81,7 @@ class SharedKnowledge(response: Response<*>? = null) {
                 candidates.retainAll({ this.color!!.color == it.color })
             }
         }
+        this.debug()
         return ignoredInformation
     }
 
@@ -123,5 +124,14 @@ class SharedKnowledge(response: Response<*>? = null) {
         return "${this.color?.color ?: ""} " +
                 "${this.shape?.shape ?: "" } piece " +
                 "${this.position}"
+    }
+
+    fun debug() {
+        println("")
+        println("Extracted Intents:")
+        println("Exact Color: ${this.color?.color}")
+        println("Abstract Color: ${this.color?.colorSuper}")
+        println("Shape: ${this.shape}")
+        println("Position: ${this.position}")
     }
 }
