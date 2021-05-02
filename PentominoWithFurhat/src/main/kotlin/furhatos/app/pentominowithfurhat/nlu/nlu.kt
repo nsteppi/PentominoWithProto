@@ -12,6 +12,7 @@ package furhatos.app.pentominowithfurhat.nlu
 
 import furhatos.app.pentominowithfurhat.GameState
 import furhatos.nlu.*
+import furhatos.nlu.common.Number
 import furhatos.nlu.grammar.Grammar
 import furhatos.nlu.kotlin.grammar
 import furhatos.util.Language
@@ -336,9 +337,6 @@ val PositionsGrammarEn =
     }
 
 
-/// only crazy stuff below here
-
-
 class Directions(
     var dir : String? = null
     ) : GrammarEntity() {
@@ -350,22 +348,148 @@ class Directions(
     }
 }
 
-
+// open formulations supported, as it is what one uses most and probably with the highest diversity
 val DirectionGrammarEn =
     grammar {
         rule(public = true) {
             choice {
-                +("plummet"/"drop"/"down") tag { Directions( dir="down" ) }
-                entity<Bottom>() tag { Directions( dir="down" ) }
-                +("higher"/"elevate"/"lift"/"raise"/"up"/"upward") tag { Directions(dir="up")}
-                entity<Top>() tag { Directions(dir="up")}
-                entity<Left>() tag { Directions(dir="left") }
-                entity<Right>() tag { Directions(dir="right") }
-                entity<Middle>() tag { Directions(dir="middle") }
+                +("plummet"/"drop"/"down"/"downward"/"downwards")
+                entity<Bottom>()
+            } tag { Directions( dir="down" ) }
+            choice {
+                +("higher"/"elevate"/"lift"/"raise"/"up"/"upward"/"hoist"/"uplift")
+                entity<Top>()
+            } tag { Directions( dir="up" ) }
+            entity<Left>() tag { Directions(dir="left") }
+            entity<Right>() tag { Directions(dir="right") }
+            entity<Middle>() tag { Directions(dir="middle") }
             }
+        }
+
+
+class Rotation(
+    var dir : Int = 1,
+    var degree: Int = 90
+) : GrammarEntity() {
+    override fun getGrammar(lang: Language): Grammar {
+        return when (lang.main) {
+            "en" -> RotationGrammarEn
+            else -> throw InterpreterException("Language $lang not supported for ${javaClass.name}")
+        }
+    }
+}
+
+
+val RotationGrammarEn =
+    grammar {
+        /** e.g. turn it clockwise */
+        rule(public = true){
+            group {
+                ruleref("general")
+                ruleref("direction")
+            } tag { Rotation(
+                dir=ref["direction"] as Int)
+            }
+        }
+
+        /** e.g. tilt this piece by ninety degrees */
+        rule(public = true){
+            group {
+                ruleref("general")
+                ruleref("degree")
+            } tag { Rotation(
+                degree = ref["degree"] as Int)
+            }
+        }
+
+        /** e.g. rotate a figure (by) 90 degrees in clockwise direction */
+        rule(public = true){
+            group {
+                ruleref("general")
+                ruleref("degree")
+                ruleref("direction")
+            } tag { Rotation(
+                        dir=ref["direction"] as Int,
+                        degree = ref["degree"] as Int)
+                }
+            }
+
+        /** e.g. rotate a figure clockwise (by) 90 degrees */
+        rule(public = true){
+            group {
+                ruleref("general")
+                ruleref("direction")
+                ruleref("degree")
+            } tag { Rotation(
+                dir=ref["direction"] as Int,
+                degree = ref["degree"] as Int)
+            }
+        }
+
+    rule("general") {
+        group {
+            +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist"/"perform")
+            -("a" / "the" / "this" / "that")
+            -("piece" / "peace"/ "figure" / "it" / "object" / "rotation" / "at")
         }
     }
 
+    rule("degree", public = false) {
+        group {
+            -"by"
+            -"a"
+            choice {
+                +("quarter" / "90" / "90°" / "ninety" / "one-fourth" / "quadrant" / "1/4") tag { 90 }
+                +("180" / "180°" / "half" / "upside-down" / "one hundred and eighty" / "1/2") tag { 180 }
+                +("270" / "270°" /"two hundred and seventy" / "three quarter" / "3/4") tag { 270 }
+            }
+            -"degrees"
+        }
+    }
+
+    rule("direction", public = false) {
+        group {
+            -("to" / "in")
+            -("the" / "a")
+            choice {
+                +("clockwise" / "dextral" / "right-handed" / "dexter" / "rightward" / "starboard") tag {1}
+                entity<Right>() tag {1}
+                +("counterclockwise" / "left-handed" / "contraclockwise" / "anticlockwise" / "leftward" / "sinister" / "sinistral" / "sinistrous" / "larboard") tag {-1}
+                entity<Left>() tag {-1}
+            }
+        }
+    }
+}
+
+
+
+
+class Mirror(
+    var axis : String? = null
+    ) : GrammarEntity() {
+    override fun getGrammar(lang: Language): Grammar {
+        return when (lang.main) {
+            "en" -> MirrorGrammarEn
+            else -> throw InterpreterException("Language $lang not supported for ${javaClass.name}")
+        }
+    }
+}
+
+
+val MirrorGrammarEn =
+    grammar {
+        rule(public = true){
+            group {
+                +("mirror" / "reflect" / "flip")
+                -("a" / "the" / "this" / "that" / "a")
+                -("piece" / "peace"/ "figure" / "it" / "object" / "rotation")
+                choice {
+                    +("horizontally" / "horizontal") tag { Mirror(axis="horizontal") }
+                    +("vertically" / "vertical") tag { Mirror(axis="vertical") }
+                }
+            }
+        }
+    }
 
 /**
 Context: One person has to complete a 16-piece puzzle while blindfolded.
@@ -389,25 +513,4 @@ Ok, go. Right, right.
 ...
 Still, too much to the right.
 Go, go. Straight.
-
-
-
-
-turn it/ that piece clockwise
-rotate a figure (by) 90 degrees in clockwise direction
-rotate a figure clockwise (by) 90 degrees
-rotate a figure (by) 90 degrees counterclockwise
-
-clockwise -> to the right...
-perform a 90-degree counterclockwise rotation
-
-
-rotate, turn, spin, tilt
-clockwise, counterclockwise, by .. degree, to the right
-
-
-
-mirror, reflect,  flipped (horizontally, vertically or diagonally)
-
-
 */

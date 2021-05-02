@@ -11,8 +11,34 @@
 package furhatos.app.pentominowithfurhat.flow
 
 import furhatos.flow.kotlin.Furhat
+import furhatos.flow.kotlin.voice.CereprocVoice
 import furhatos.flow.kotlin.voice.PollyNeuralVoice
+import furhatos.flow.kotlin.voice.PollyVoice
 
+
+fun Furhat.happy(text: String) {
+    say(voice.prosody(
+        text,
+        volume = "+16dB",
+        rate = 1.05
+    )
+    )
+}
+
+
+fun Furhat.breathing(){
+    val oldVoice = voice
+    voice = PollyVoice.Matthew()
+    say(PollyVoice.Matthew().breath(
+        duration = PollyVoice.BreathDuration.LONG,
+        volume=PollyVoice.BreathVolume.XLOUD
+    ))
+    say(PollyVoice.Matthew().breath(
+        duration = PollyVoice.BreathDuration.MEDIUM,
+        volume=PollyVoice.BreathVolume.XLOUD
+    ))
+    voice = oldVoice
+}
 
 /** a mixture of disappointed and sad but mainly spiritless */
 fun Furhat.deflated(text: String) {
