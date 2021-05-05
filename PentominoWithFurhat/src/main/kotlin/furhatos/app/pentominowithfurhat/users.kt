@@ -14,6 +14,7 @@ import furhatos.app.pentominowithfurhat.GameState
 import furhatos.app.pentominowithfurhat.SharedKnowledge
 import furhatos.flow.kotlin.NullSafeUserDataDelegate
 import furhatos.flow.kotlin.UserDataDelegate
+import furhatos.nlu.GrammarEntity
 import furhatos.records.User
 
 
@@ -30,6 +31,10 @@ var User.right_state : List<GameState.PentoPiece> by NullSafeUserDataDelegate { 
 var User.selected : String by NullSafeUserDataDelegate { "" }
 var User.candidates : MutableList<GameState.PentoPiece> by NullSafeUserDataDelegate { mutableListOf<GameState.PentoPiece>() }
 var User.roundKnowledge : SharedKnowledge? by UserDataDelegate()
+
+// movement actions
+var User.prevAction : String? by UserDataDelegate()
+var User.prevParam : Map<String, Any>? by UserDataDelegate()
 
 // stores previous user attitude
 var User.saidNo by NullSafeUserDataDelegate { false }

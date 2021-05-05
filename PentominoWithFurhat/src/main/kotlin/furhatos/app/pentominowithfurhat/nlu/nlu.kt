@@ -18,6 +18,19 @@ import furhatos.nlu.kotlin.grammar
 import furhatos.util.Language
 
 
+class Stop : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("hold", "stop", "enough", "perfect", "that's it", "wait", "cancel")
+    }
+}
+
+class Back : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("back", "return", "too much", "too far")
+    }
+}
+
+
 /**
  * Each exact [color] is seen as a member of a [colorSuper] set,
  * where it is grouped with similar looking colors.
@@ -337,32 +350,32 @@ val PositionsGrammarEn =
     }
 
 
-class Directions(
+class Move(
     var dir : String? = null
     ) : GrammarEntity() {
     override fun getGrammar(lang: Language): Grammar {
         return when (lang.main) {
-            "en" -> DirectionGrammarEn
+            "en" -> MoveGrammarEn
             else -> throw InterpreterException("Language $lang not supported for ${javaClass.name}")
         }
     }
 }
 
 // open formulations supported, as it is what one uses most and probably with the highest diversity
-val DirectionGrammarEn =
+val MoveGrammarEn =
     grammar {
         rule(public = true) {
             choice {
                 +("plummet"/"drop"/"down"/"downward"/"downwards")
                 entity<Bottom>()
-            } tag { Directions( dir="down" ) }
+            } tag { Move( dir="down" ) }
             choice {
                 +("higher"/"elevate"/"lift"/"raise"/"up"/"upward"/"hoist"/"uplift")
                 entity<Top>()
-            } tag { Directions( dir="up" ) }
-            entity<Left>() tag { Directions(dir="left") }
-            entity<Right>() tag { Directions(dir="right") }
-            entity<Middle>() tag { Directions(dir="middle") }
+            } tag { Move( dir="up" ) }
+            entity<Left>() tag { Move(dir="left") }
+            entity<Right>() tag { Move(dir="right") }
+            entity<Middle>() tag { Move(dir="middle") }
             }
         }
 
@@ -382,7 +395,9 @@ class Rotation(
 
 val RotationGrammarEn =
     grammar {
-        /** e.g. turn it clockwise */
+        /** e.g. rotate/ pivot the piece */
+
+        /** e.g. turn it counterclockwise */
         rule(public = true){
             group {
                 ruleref("general")
@@ -392,7 +407,7 @@ val RotationGrammarEn =
             }
         }
 
-        /** e.g. tilt this piece by ninety degrees */
+        /** e.g. tilt this piece by 180 degrees */
         rule(public = true){
             group {
                 ruleref("general")
@@ -402,7 +417,7 @@ val RotationGrammarEn =
             }
         }
 
-        /** e.g. rotate a figure (by) 90 degrees in clockwise direction */
+        /** e.g. rotate a figure (by) 180 degrees in counterclockwise direction */
         rule(public = true){
             group {
                 ruleref("general")
@@ -414,7 +429,7 @@ val RotationGrammarEn =
                 }
             }
 
-        /** e.g. rotate a figure clockwise (by) 90 degrees */
+        /** e.g. rotate a figure counterclockwise (by) 90 degrees */
         rule(public = true){
             group {
                 ruleref("general")
@@ -426,12 +441,13 @@ val RotationGrammarEn =
             }
         }
 
-    rule("general") {
+    /** e.g. rotate/ pivot the piece */
+    rule("general", public = false) {
         group {
-            +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist"/"perform")
+            +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
             -("a" / "the" / "this" / "that")
             -("piece" / "peace"/ "figure" / "it" / "object" / "rotation" / "at")
-        }
+        } tag { Rotation() }
     }
 
     rule("degree", public = false) {
@@ -440,7 +456,7 @@ val RotationGrammarEn =
             -"a"
             choice {
                 +("quarter" / "90" / "90°" / "ninety" / "one-fourth" / "quadrant" / "1/4") tag { 90 }
-                +("180" / "180°" / "half" / "upside-down" / "one hundred and eighty" / "1/2") tag { 180 }
+                +("around" / "180" / "180°" / "half" / "upside-down" / "one hundred and eighty" / "1/2") tag { 180 }
                 +("270" / "270°" /"two hundred and seventy" / "three quarter" / "3/4") tag { 270 }
             }
             -"degrees"
@@ -454,7 +470,7 @@ val RotationGrammarEn =
             choice {
                 +("clockwise" / "dextral" / "right-handed" / "dexter" / "rightward" / "starboard") tag {1}
                 entity<Right>() tag {1}
-                +("counterclockwise" / "left-handed" / "contraclockwise" / "anticlockwise" / "leftward" / "sinister" / "sinistral" / "sinistrous" / "larboard") tag {-1}
+                +("counter-clockwise" / "counterclockwise" / "left-handed" / "contraclockwise" / "anticlockwise" / "leftward" / "sinister" / "sinistral" / "sinistrous" / "larboard") tag {-1}
                 entity<Left>() tag {-1}
             }
         }
@@ -465,7 +481,7 @@ val RotationGrammarEn =
 
 
 class Mirror(
-    var axis : String? = null
+    var axis : String = "vertical"
     ) : GrammarEntity() {
     override fun getGrammar(lang: Language): Grammar {
         return when (lang.main) {
@@ -479,8 +495,13 @@ class Mirror(
 val MirrorGrammarEn =
     grammar {
         rule(public = true){
+            +("mirror" / "reflect" / "flip") tag { Mirror() }
+        }
+
+        rule(public = true){
             group {
                 +("mirror" / "reflect" / "flip")
+                -"on"
                 -("a" / "the" / "this" / "that" / "a")
                 -("piece" / "peace"/ "figure" / "it" / "object" / "rotation")
                 choice {

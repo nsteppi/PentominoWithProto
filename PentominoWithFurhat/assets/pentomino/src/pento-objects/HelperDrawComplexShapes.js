@@ -68,7 +68,7 @@ export const generateElephantShape = (shape, pento_config, grid_config) => {
         let new_shape = createNewPentoPieceInShape(shape, grid_config, pento_piece, rand_color, id);
         let new_template = createNewPentoPieceInShape(shape, grid_config, pento_piece, pento_config.get_hex_code(pento_config.templ_col), id);
         generated_shapes.push(new_shape.copy(id));
-        template_shapes.push(new_template.copy(generated_shapes.length + id));
+        template_shapes.push(new_template.copy(pento_types.length + id));
     }
 
 

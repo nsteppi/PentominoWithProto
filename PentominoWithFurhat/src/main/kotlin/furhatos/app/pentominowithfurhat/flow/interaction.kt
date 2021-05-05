@@ -10,9 +10,6 @@
 
 package furhatos.app.pentominowithfurhat.flow
 
-import furhatos.app.pentominowithfurhat.nlu.Directions
-import furhatos.app.pentominowithfurhat.nlu.Mirror
-import furhatos.app.pentominowithfurhat.nlu.Rotation
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures.BigSmile
 import furhatos.gestures.Gestures.Nod
@@ -34,7 +31,6 @@ val Greeting : State = state(Interaction) {
 
     onEntry {
         furhat.gesture(EmpatheticSmile)
-        furhat.param.recognitionAlternatives = 5
         furhat.ask({
             random {
                 +"Hi there."
@@ -44,13 +40,6 @@ val Greeting : State = state(Interaction) {
                 +"So nice for you to come and see me."
             }
         })
-    }
-
-    onResponse<Rotation> {
-        println(it.text)
-        println(it.intent.dir)
-        println(it.intent.degree)
-        furhat.param.recognitionAlternatives = 1
     }
 
     onResponse {

@@ -30,7 +30,6 @@ var UPTODATE = true
  * until furhat received an update on the game state.
  */
 fun sendWait(name: String) = state(GameRunning){
-
     onEntry {
         UPTODATE = false
         send(name)
@@ -65,6 +64,13 @@ val Idle: State = state {
         // texture setting
         // this does not raise an error even if 'proto' is missing
         furhat.setTexture("Proto")
+
+        // speech recognition phrases
+        furhat.setSpeechRecPhrases(listOf(
+            "turn", "rotate", "spin", "tilt",
+            "whirl", "pivot", "swing", "twist",
+            "mirror", "reflect", "flip", "piece"
+        ))
 
         if (users.count > 0) {
             furhat.attend(users.random)
@@ -166,6 +172,7 @@ val GameRunning : State = state(Interaction) {
 
         // check game status to signal end of game if the case
         if (latestGameData.game.status in listOf("won","lost")) {
+            send("placeSelected")
             goto(GameFinished)
         }
         // select and remember new random element

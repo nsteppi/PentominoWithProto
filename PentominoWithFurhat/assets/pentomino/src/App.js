@@ -2,26 +2,9 @@
  * App.js
  * Maike Paetzel-Prüsmann
  *
- * Getroffene Anpassungen:
- * - Roboter erhielt nur bei Änderung der Zeit aktuelle Informationen, also nicht mehr nach Spielende.
- *   Damit er bemerkt, dass das Spiel geendet hat, senden wir ein zusätzliches Update an den Roboter.
- *   + sendDataToFurhat()     [Zeile 340]
- *
- * - Wenn ein neues Spiel gestartet wurde, dann wurde das PopUp Fenster von einem vorherigen Durchlauf
- *   nicht automatisch geschlossen, wir lassen sich das PopUp nun automatisch bei startGame schließen.
- *   + if (isPopupLostOpen) {
- *         togglePopupLost()
- *         }
- *     if (isPopupWonOpen) {
- *        togglePopupWon()
- *        }                   [Zeile 106-111]
- *
- *  - Die Spielzeit hat sich ins negative bewegt. Um dies zu beheben haben wir die Code Zeilen
- *    aus [Zeile 277-279] nach [Zeile 339-241] bewegt.
- *
- * Durch:
+ * Modifikationen durch:
  * - Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
- * - WiSe 20/21
+ * - SoSe 21
  * - Kotlin 1.3.70
  * - Windows 10
  */
@@ -265,6 +248,26 @@ const App = () => {
     );
   };
 
+  const getHint = () => {
+    if (activeShape.length > 0) {
+      let active_template = placedShapes.filter(
+          s => pento_config.get_color_name(s.color) === pento_config.templ_col
+                && s.type === activeShape[0].type
+      )
+      selectPentoPiece(active_template[0].name)
+    }
+  };
+
+  const removeHint = () => {
+    if (activeShape.length > 0) {
+      let active = placedShapes.filter(
+          s => pento_config.get_color_name(s.color) !== pento_config.templ_col
+              && s.type === activeShape[0].type
+      )
+      selectPentoPiece(active[0].name)
+    }
+  };
+
 
   /**
    * Rendert die Buttons unter dem Game-Board, mit denen zu Testzwecken einzelne Teile ausgewählt werden können.
@@ -331,9 +334,14 @@ const App = () => {
    */
   const moveActive = (dx, dy) => {
     let active = activeShape[0];
+    // Sicherstellen, dass der Stein das Spielfeld nicht verlässt
+    let new_x = Math.max(0 + 2*grid_config.block_size, active.x+dx);
+    new_x   = Math.min(new_x, pento_config.board_size - 2*grid_config.block_size);
+    let new_y = Math.max(0 + 2*grid_config.block_size, active.y+dy);
+    new_y   = Math.min(new_y, pento_config.board_size - 2*grid_config.block_size);
     // den Gamestate mit den neuen Koordinaten updaten
-    dispatch({type: 'updateCoords', x:active.x+dx, y:active.y+dy});
-    active.moveTo(active.x+dx, active.y+dy);
+    dispatch({type: 'updateCoords', x:new_x, y:new_y});
+    active.moveTo(new_x, new_y);
   };
 
   /**
@@ -422,7 +430,10 @@ const App = () => {
   const fixCorrectlyPlaced = (shape_to_check) => {
     if (placedShapes.find(s => s.name == shape_to_check.name) && // Stein muss rechts liegen ...
         isCorrectlyPlaced(shape_to_check)) { // ... und an der richtigen Stelle auf dem Board sein
-      dispatch({type: 'pieceAtGoal', piece: shape_to_check});
+      if (gameState.correctly_placed.find(shape => shape.name == shape_to_check.name) == null){
+        placementSuccessful()
+        dispatch({type: 'pieceAtGoal', piece: shape_to_check});
+      }
       setActiveShape([]);
     }
   }
@@ -465,14 +476,9 @@ const App = () => {
   const lockActiveOnGrid = () => {
     if (activeOnRightBoard()) {
       let active = activeShape[0];
-      // Sicherstellen, dass der Stein das Spielfeld nicht verlässt
-      let new_x = Math.max(active.x, grid_config.x + 2*grid_config.block_size);
-      new_x   = Math.min(new_x, grid_config.board_size - 2*grid_config.block_size);
-      let new_y = Math.max(active.y, grid_config.y + 2*grid_config.block_size);
-      new_y   = Math.min(new_y, grid_config.board_size - 2*grid_config.block_size);
       // Stein auf einem Quadrat einrasten lassen
-      new_x = Math.floor(((new_x - grid_config.x) / grid_config.block_size) + 0.5) * grid_config.block_size;
-      new_y = Math.floor(((new_y - grid_config.y) / grid_config.block_size) + 0.5) * grid_config.block_size;
+      let new_x = Math.floor(((active.x - grid_config.x) / grid_config.block_size) + 0.5) * grid_config.block_size;
+      let new_y = Math.floor(((active.y - grid_config.y) / grid_config.block_size) + 0.5) * grid_config.block_size;
       active.moveTo(new_x, new_y);
       dispatch({type: 'updateCoords', x:new_x, y:new_y});
     } else {
@@ -605,10 +611,10 @@ const App = () => {
       // Wir subscriben zu dem Event, das vom Roboter gesendet werden kann, um einen Spielstein auszuwählen
       window.furhat.subscribe('selectPiece', function (params) {
         selectPentoPiece(params.piece)
-      });
+      })
     }
 
-  }, [gameState.correctly_placed, gameState.game.status]);
+  }, [gameState.correctly_placed, gameState.game.status, activeShape]); //placedShapes
 
   /**
    * Hier werden Änderungen im aktuell ausgewählten Spielstein an die richtigen Stellen kommuniziert.
@@ -660,6 +666,14 @@ const App = () => {
       window.furhat.subscribe('flipSelected', function (params) {
         flipActive(params.axis)
       })
+
+      window.furhat.subscribe('getHint', function () {
+        getHint()
+      })
+
+      window.furhat.subscribe('removeHint', function() {
+        removeHint()
+      })
     }
   }, [activeShape]);
 
@@ -668,7 +682,8 @@ const App = () => {
    */
   useEffect(() => {
     sendDataToFurhat()
-  }, [gameState.game.time, gameState.correctly_placed, gameState.left_board]);
+  }, [gameState.game.time, gameState.correctly_placed,
+            gameState.left_board, gameState.right_board]);
 
   /**
    * Wenn die Web-UI initialisiert wird, verbinden wir uns mit dem Roboter.
@@ -716,6 +731,14 @@ const App = () => {
       window.furhat.send({
         event_name: "GameStateUpdate",
         data: JSON.stringify(gameState)
+      })
+    }
+  }
+
+  const placementSuccessful = () => {
+    if(window.furhat) {
+      window.furhat.send({
+        event_name: "placementSuccessful"
       })
     }
   }

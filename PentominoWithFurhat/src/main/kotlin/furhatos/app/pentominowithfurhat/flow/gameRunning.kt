@@ -11,11 +11,12 @@
 package furhatos.app.pentominowithfurhat.flow
 
 import furhatos.app.pentominowithfurhat.SharedKnowledge
-import furhatos.app.pentominowithfurhat.nlu.Colors
-import furhatos.app.pentominowithfurhat.nlu.Positions
-import furhatos.app.pentominowithfurhat.nlu.Shapes
+import furhatos.app.pentominowithfurhat.nlu.*
+import furhatos.event.Event
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures
+import furhatos.gestures.Gestures.BrowFrown
+import furhatos.nlu.common.DontKnow
 import furhatos.nlu.common.No
 import furhatos.nlu.common.Yes
 import furhatos.records.Location
@@ -280,21 +281,13 @@ val PieceSelected : State = state(GameRunning)  {
     onResponse<Yes> {
         furhat.attend(RIGHT_BOARD)
         call(sendWait("startPlacing"))
-        furhat.glance(users.current)
         furhat.say {
-            + "Ok."
+            + "Okay."
             + Gestures.BrowRaise
             + Gestures.Smile
-            random {
-                +"Great choice."
-                +"What a lovely choice."
-                +"I have placed the piece for you."
-                +"We are making progress."
-                +"This game is so fun."
-            }
         }
-        furhat.attend(users.current)
-        goto(GatherInformation)
+        delay(500)
+        goto(PlaceSelected)
     }
 
     onResponse<No> {
@@ -323,7 +316,160 @@ val PieceSelected : State = state(GameRunning)  {
     }
 }
 
+class Action(val text : String, val param : Map<String, Any> = mapOf()) : Event()
 
+// Enter while: Attending Right Board
 val PlaceSelected : State = state(GameRunning) {
-    //TODO: add content
+    onEntry {
+        furhat.attend(users.current)
+        furhat.ask ({
+            random {
+                +"Fine. Where do you want me to move the piece?"
+                +"Where to?"
+                +"Where should I move it?"
+                +"Where does this piece go?"
+                +"Where does the piece belong?"
+                +"How should I move it?"
+                +"Can you tell me where to move the piece?"
+            }
+        }, timeout = 20000)
+    }
+
+    onInterimResponse {
+        val interimIntent = it.classifyIntent()
+        if (interimIntent != null) {
+            if (interimIntent.intent is Move
+                || interimIntent.intent is Stop
+                || interimIntent.intent is Back) {
+                raise(interimIntent)
+            }
+        }
+    }
+
+    onResponse<Rotation> {
+        println(it.intent.dir) //TODO: remove
+        println(it.intent.degree) //TODO: remove
+        raise(Action("rotateSelected", mapOf("angle" to it.intent.dir*it.intent.degree)))
+    }
+
+    onResponse<Mirror> {
+        println(it.intent.axis) //TODO: remove
+        raise(Action("flipSelected", mapOf("axis" to it.intent.axis)))
+    }
+
+    onResponse<Move> {
+        println(it.speech.text)
+        val otherIntent = it.findFirst(Rotation())
+        print(otherIntent)
+        if (otherIntent != null) {
+            raise(otherIntent)
+        } else {
+            raise(Action("moveSelected", mapOf("dir" to it.intent.dir as String)))
+        }
+    }
+
+    onResponse<Stop> {
+        raise(Action("placeSelected"))
+    }
+
+    onResponse<Back> {
+        if (users.current.prevAction != null) {
+            val prevAction = users.current.prevAction!!
+            val prevParam = users.current.prevParam!!
+            when (prevAction) {
+                "moveSelected" -> {
+                    val counterDir = mapOf("up" to "down", "down" to "up",
+                        "left" to "right", "right" to "left")
+                    val newValue = counterDir.getValue(prevParam.getValue("dir") as String)
+                    raise(Action(prevAction, mapOf("dir" to newValue)))
+                }
+                "flipSelected" -> {
+                    raise(Action(prevAction, prevParam))
+                }
+                "rotateSelected" -> {
+                    val newValue = -1*prevParam.getValue("angle") as Int
+                    raise(Action(prevAction, mapOf("angle" to newValue)))
+                }
+                else -> { // shouldn't be triggered but better be sure
+                    furhat.listen(timeout = 20000)
+                }
+            }
+
+        }
+    }
+
+    onResponse<DontKnow> {
+        furhat.attend(users.current)
+        furhat.gesture(awaitAnswer(duration = 3.0), async = false)
+        send("getHint")
+        furhat.say {
+            random {
+                +"You seem to be in desperate need of some hint. Here."
+                +"Let me help you. Here."
+                +"That's where the piece goes."
+            }
+        }
+        furhat.attend(RIGHT_BOARD)
+        delay(1500)
+        send("removeHint")
+        reentry()
+    }
+
+    onResponse {
+        furhat.say {
+            random {
+                +"Again, please."
+                +"Wait, what?"
+                +"Pardon?"
+            }
+        }
+        furhat.gesture(
+            listOf(
+                awaitAnswer(duration = 5.0),
+                questioning(duration = 2.0),
+                BrowFrown
+            ).shuffled().take(1)[0]
+        )
+        furhat.listen(timeout = 20000)
+    }
+
+    onNoResponse {
+        raise(DontKnow())
+    }
+
+
+    onEvent<Action>(instant = true) {
+        furhat.attend(RIGHT_BOARD)
+        if (it.param.isEmpty()) {
+            send(it.text)
+        } else {
+            send(it.text, it.param)
+        }
+        users.current.prevAction = it.text
+        users.current.prevParam = it.param
+        furhat.listen(timeout = 20000)
+    }
+
+
+
+    onEvent("placementSuccessful") {
+        furhat.attend(users.current)
+        furhat.stopSpeaking()
+        furhat.say {
+            random {
+                +"And that's how you build an elephant."
+                +"Great."
+                +"We are making progress."
+                +"This game is so fun."
+            }
+        }
+        goto(GatherInformation)
+    }
 }
+
+
+//TODO: select one out of three candidates approaches to the placement
+// - "right right right right down down down ... stop
+// - "right some more go on more more (signal of continuation) stop
+// - "right ... ... ... stop
+
