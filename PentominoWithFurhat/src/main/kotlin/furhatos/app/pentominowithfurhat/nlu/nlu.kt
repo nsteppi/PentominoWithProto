@@ -422,34 +422,33 @@ val MoveGrammarEn =
                 -("block" / "blocks" / "bucks" / "field" / "step" / "more" / "farther" / "column" / "row" / "place")
                 -"to"
                 -"the"
-                choice {
-                    entity<Top>() tag { Move(dir="up", dist=ref["distance"] as Int) }
-                    +("higher"/"elevate"/"lift"/"raise"/"up"/"upward"/"hoist"/"uplift") tag { Move(dir="up", dist=ref["distance"] as Int) }
-                    entity<Bottom>() tag { Move(dir="down", dist=ref["distance"] as Int) }
-                    +("plummet"/"drop"/"down"/"downward"/"downwards") tag { Move(dir="down", dist=ref["distance"] as Int) }
-                    entity<Left>() tag { Move(dir="left", dist=ref["distance"] as Int) }
-                    entity<Right>() tag { Move(dir="right", dist=ref["distance"] as Int) }
-                }
-            }
+                ruleref("direction")
+            } tag { Move(dir=ref["direction"] as String, dist=ref["distance"] as Int) }
         }
 
+        // Unfortunately, this rule is never triggered during the dialog,
+        // as due to the use of InterimResponse blocks a movement event
+        // is send to the web interface as soon as the direction is clear
         /**
          * A fixed movement goal.
          * e.g. go down one block
          */
         rule(public = true) {
-            choice {
-                entity<Top>() tag { Move(dir="up", dist=ref["distance"] as Int) }
-                +("higher"/"elevate"/"lift"/"raise"/"up"/"upward"/"hoist"/"uplift") tag { Move(dir="up", dist=ref["distance"] as Int) }
-                entity<Bottom>() tag { Move(dir="down", dist=ref["distance"] as Int) }
-                +("plummet"/"drop"/"down"/"downward"/"downwards") tag { Move(dir="down", dist=ref["distance"] as Int) }
-                entity<Left>() tag { Move(dir="left", dist=ref["distance"] as Int) }
-                entity<Right>() tag { Move(dir="right", dist=ref["distance"] as Int) }
-            }
-            -("by" / "for" / "to")
-            ruleref("distance")
+            group {
+                ruleref("direction")
+                -("by" / "for" / "to")
+                ruleref("distance")
+            } tag { Move(dir=ref["direction"] as String, dist=ref["distance"] as Int) }
         }
 
+        rule("direction", public = false) {
+            entity<Top>() tag { "up" }
+            +("higher"/"elevate"/"lift"/"raise"/"up"/"upward"/"hoist"/"uplift") tag { "up" }
+            entity<Bottom>() tag { "down" }
+            +("plummet"/"drop"/"down"/"downward"/"downwards") tag { "down" }
+            entity<Left>() tag { "left" }
+            entity<Right>() tag { "right" }
+        }
 
         rule("distance", public = false) {
             +("1" / "one" / "a notch" / "a bit" / "slightly") tag { 1 }

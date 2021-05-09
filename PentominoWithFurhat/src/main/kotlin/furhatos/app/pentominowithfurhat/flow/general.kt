@@ -37,7 +37,7 @@ fun sendWait(name: String) = state(GameRunning){
         while (!UPTODATE){
             delay(100)
             time_out += 100
-            if (time_out > 20000) {
+            if (time_out > 10000) {
                 println("Updating Information from web interface failed")
                 goto(Idle)
             }
