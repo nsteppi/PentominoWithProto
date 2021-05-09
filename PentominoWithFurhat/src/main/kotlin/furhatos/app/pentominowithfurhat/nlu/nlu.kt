@@ -1,9 +1,12 @@
 /**
  * nlu.kt
- * Contains entities matching patterns of color, shape and position.
+ * Contains entities matching patterns of:
+ * + color
+ * + shape
+ * + position.
  *
  * Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
- * WiSe 20/21
+ * SoSe 21
  * Kotlin 1.3.70
  * Windows 10
  */
@@ -12,23 +15,9 @@ package furhatos.app.pentominowithfurhat.nlu
 
 import furhatos.app.pentominowithfurhat.GameState
 import furhatos.nlu.*
-import furhatos.nlu.common.Number
 import furhatos.nlu.grammar.Grammar
 import furhatos.nlu.kotlin.grammar
 import furhatos.util.Language
-
-
-class Stop : EnumEntity() {
-    override fun getEnum(lang: Language): List<String> {
-        return listOf("hold", "stop", "enough", "perfect", "that's it", "wait", "cancel")
-    }
-}
-
-class Back : EnumEntity() {
-    override fun getEnum(lang: Language): List<String> {
-        return listOf("back", "return", "too much", "too far")
-    }
-}
 
 
 /**
@@ -50,7 +39,11 @@ class Colors(
 
     // for class methods and static methods
     companion object Trans {
-        /** This method maps an exact [color] to its abstract category. */
+        /**
+         * This method maps an exact [color] to its abstract category.
+         *
+         * @return A natural language expression for a broad color category
+         */
         fun colorSuper(color: String): String? {
             val toSuper: HashMap<String, String> = hashMapOf(
                 "light blue" to "blue", "dark blue" to "blue", "turquoise" to "blue",
@@ -98,6 +91,9 @@ class Shapes(
      * An instantiated shape intent and the string [sent] it
      * was extracted from can together be used to check
      * whether the shape was actually a pronoun.
+     *
+     * @return `true` if the shape instance is a pronoun,
+     *          `false` if it is likely a shape description
      */
     private fun isPronoun(sent: String): Boolean {
         if (this.text !in setOf("U", "you", "eye", "I")) {
@@ -127,6 +123,8 @@ class Shapes(
          * last mentioned shape. With the exception that if the last
          * shape was a pronoun candidate ("I" or "U") and there is another shape that
          * classifies under no circumstances as a pronoun, choose this one instead.
+         *
+         * @return Shapes object or null if none found
          */
         fun getShape(shapeList : List<Shapes>, sent: String): Shapes? {
             val shapes = shapeList.filterNot { it.isPronoun(sent) }
@@ -164,29 +162,19 @@ val ShapeGrammarEn =
         }
     }
 
-/** To be used for [Positions] as well as [Directions] */
-class Right : EnumEntity() {
-    override fun getEnum(lang: Language): List<String> {
-        return listOf("right", "white", "east", "right-hand")
-    }
-}
 
-/** To be used for [Positions] as well as [Directions] */
-class Left : EnumEntity() {
-    override fun getEnum(lang: Language): List<String> {
-        return listOf("left", "west", "left-hand")
-    }
-}
-
-/** To be used for [Positions] as well as [Directions] */
+/** To be used for [Positions] as well as [Move] */
 class Top : EnumEntity() {
     override fun getEnum(lang: Language): List<String> {
-        return listOf("top", "upper", "north", "further towards you",
-            "closer towards you", "farther away from me")
+        return listOf(
+            "top", "upper", "north", "further towards you",
+            "closer towards you", "farther away from me"
+        )
     }
 }
 
-/** To be used for [Positions] as well as [Directions] */
+
+/** To be used for [Positions] as well as [Move] */
 class Bottom : EnumEntity() {
     override fun getEnum(lang: Language): List<String> {
         return listOf(
@@ -197,6 +185,24 @@ class Bottom : EnumEntity() {
     }
 }
 
+
+/** To be used for [Positions] as well as [Move] */
+class Left : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("left", "west", "left-hand")
+    }
+}
+
+
+/** To be used for [Positions] as well as [Move] */
+class Right : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("right", "white", "east", "right-hand")
+    }
+}
+
+
+/** To be used for [Positions] */
 class Middle : EnumEntity() {
     override fun getEnum(lang: Language): List<String> {
         return listOf("mid", "middle", "centre", "center", "central")
@@ -210,6 +216,8 @@ class Middle : EnumEntity() {
  *
  * [topBorder]/[leftBorder]: accept values as within limits that are bigger
  * [bottomBorder]/[rightBorder]: accept values as within limits that are smaller
+ *
+ * View project documentation for information about our understanding of positions.
  *
  * coordinate system has the orientation:
  *   0 -   200  - 400
@@ -234,8 +242,11 @@ class Positions(
     }
 
     /**
-     * This method checks whether the [loc]ation of a pento piece
+     * This method checks whether the [loc]ation of a Pentomino piece
      * lies within the given bounds.
+     *
+     * @return `true` if the Pentomino piece lies in [loc],
+     *          `false` if its position is somewhere else
      */
     fun includedIn(loc: GameState.Location) : Boolean {
         return loc.x < this.rightBorder
@@ -251,7 +262,10 @@ class Positions(
     /**
      * This method translates given bounds to a natural language description.
      * It may either only refer to top/bottom/left/right (not [detailed])
-     * or also to middle ([detailed]).
+     * or also to middle ([detailed]). If called without arguments
+     * a [detailed] description is returned.
+     *
+     * @return String description
      */
     fun toString(detailed: Boolean = true) : String {
         val yAxis =  when {
@@ -279,6 +293,9 @@ class Positions(
     companion object Trans {
         /**
          * This method translates given [loc]ation to a natural language description.
+         *
+         * @see Positions.toString for more details.
+         * @return String description
          */
         fun toString(loc: GameState.Location, detailed : Boolean = false): String {
             return Positions(
@@ -292,6 +309,8 @@ class Positions(
          * in [posList] and combines them to a complex position (e.g. top left).
          * Atomic positions stated more recently are given priority over those at
          * the beginning of the utterance if conflicts exist.
+         *
+         * @return Positions object
          */
         fun toCompPosition(posList : List<Positions>): Positions {
             val pos = Positions()
@@ -326,9 +345,6 @@ class Positions(
 }
 
 
-/**
- * View project ReadMe.md for information about our understanding of positions.
- */
 val PositionsGrammarEn =
     grammar {
         rule(public = true) {
@@ -350,8 +366,14 @@ val PositionsGrammarEn =
     }
 
 
+/**
+ * Move a piece in a specified [dir]ection. Without any additional
+ * input this movement has to be manually halted via the [Stop] intent.
+ * Optionally one can specify a fixed [dist]ance.
+ */
 class Move(
-    var dir : String? = null
+    var dir : String? = null,
+    var dist: Int? = null
     ) : GrammarEntity() {
     override fun getGrammar(lang: Language): Grammar {
         return when (lang.main) {
@@ -361,9 +383,20 @@ class Move(
     }
 }
 
-// open formulations supported, as it is what one uses most and probably with the highest diversity
+
+/**
+ * This grammar supports very open formulations, as it is used to catch the intent
+ * one will probably use most during the placement process. The more often
+ * an intent is used the more diverse we expect the user utterances to be.
+ *
+ * This has the downside of creating more false positive for the related intent.
+ */
 val MoveGrammarEn =
     grammar {
+        /**
+         * No fixed movement goal.
+         * e.g. Move the piece to the right.
+         */
         rule(public = true) {
             choice {
                 +("plummet"/"drop"/"down"/"downward"/"downwards")
@@ -376,10 +409,80 @@ val MoveGrammarEn =
             entity<Left>() tag { Move(dir="left") }
             entity<Right>() tag { Move(dir="right") }
             entity<Middle>() tag { Move(dir="middle") }
+        }
+
+        /**
+         * A fixed movement goal.
+         * e.g. Move the piece three blocks to the right.
+         */
+        rule(public = true) {
+            group {
+                ruleref("distance")
+                -("block" / "blocks" / "field" / "step" / "more" / "farther" / "column" / "row")
+                -"to"
+                -"the"
+                choice {
+                    entity<Top>() tag { Move(dir="up", dist=ref["distance"] as Int) }
+                    +("higher"/"elevate"/"lift"/"raise"/"up"/"upward"/"hoist"/"uplift") tag { Move(dir="up", dist=ref["distance"] as Int) }
+                    entity<Bottom>() tag { Move(dir="down", dist=ref["distance"] as Int) }
+                    +("plummet"/"drop"/"down"/"downward"/"downwards") tag { Move(dir="down", dist=ref["distance"] as Int) }
+                    entity<Left>() tag { Move(dir="left", dist=ref["distance"] as Int) }
+                    entity<Right>() tag { Move(dir="right", dist=ref["distance"] as Int) }
+                }
             }
         }
 
+        rule("distance", public = false) {
+            +("1" / "one" / "a notch" / "a bit" / "slightly") tag { 1 }
+            +("2" / "two") tag { 2 }
+            +("3" / "three") tag { 3 }
+            +("4" / "four") tag { 4 }
+            +("5" / "five") tag { 5 }
+        }
+    }
 
+
+/**
+ * Catch the users intention to stop movement.
+ */
+class Stop : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf(
+            "hold", "stop", "enough", "perfect",
+            "that's it", "wait", "cancel", "nice", "good"
+        )
+    }
+}
+
+
+/**
+ * Catch the users intention to perform the reverse action of a previous action.
+ */
+class Back : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("back", "return", "too much", "too far")
+    }
+}
+
+
+/**
+ * Catch the users intention to perform a previous action again.
+ */
+class Again : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf(
+            "again", "repeat", "go on", "once more",
+            "one more time", "a second time", "another time"
+        )
+    }
+}
+
+
+/**
+ * One can rotate a piece by a certain [degree].
+ * The sign of the degree, speaking whether we want the rotation to be
+ * performed to the left (-1) or right (Default: 1) is saved in the [dir] attribute.
+ */
 class Rotation(
     var dir : Int = 1,
     var degree: Int = 90
@@ -396,6 +499,7 @@ class Rotation(
 val RotationGrammarEn =
     grammar {
         /** e.g. rotate/ pivot the piece */
+        // -> captured in the relevant state due to bug with GrammarEntity
 
         /** e.g. turn it counterclockwise */
         rule(public = true){
@@ -441,12 +545,18 @@ val RotationGrammarEn =
             }
         }
 
-    /** e.g. rotate/ pivot the piece */
     rule("general", public = false) {
-        group {
-            +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
-            -("a" / "the" / "this" / "that")
-            -("piece" / "peace"/ "figure" / "it" / "object" / "rotation" / "at")
+        choice {
+            group {
+                +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
+                -("a" / "the" / "this" / "that")
+                -("piece" / "peace" / "figure" / "it" / "object" / "rotation" / "at")
+            }
+            group {
+                +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
+                -("a" / "the" / "this" / "that")
+                entity<Shapes>()
+            }
         } tag { Rotation() }
     }
 
@@ -478,8 +588,13 @@ val RotationGrammarEn =
 }
 
 
-
-
+/**
+ * One can mirror a piece on the horizontal and vertical [axis].
+ * The default is the vertical mirroring.
+ *
+ * vertical: e.g. |_ -> _|
+ * horizontal: e.g. |_ -> |‾
+ */
 class Mirror(
     var axis : String = "vertical"
     ) : GrammarEntity() {
@@ -494,10 +609,12 @@ class Mirror(
 
 val MirrorGrammarEn =
     grammar {
+        /** e.g. Mirror the piece. */
         rule(public = true){
             +("mirror" / "reflect" / "flip") tag { Mirror() }
         }
 
+        /** e.g. I want you to flip the piece on the vertical axis. */
         rule(public = true){
             group {
                 +("mirror" / "reflect" / "flip")
@@ -511,6 +628,7 @@ val MirrorGrammarEn =
             }
         }
     }
+
 
 /**
 Context: One person has to complete a 16-piece puzzle while blindfolded.

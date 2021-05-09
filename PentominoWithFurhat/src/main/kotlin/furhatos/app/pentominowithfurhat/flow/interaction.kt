@@ -18,6 +18,10 @@ import furhatos.gestures.Gestures.Wink
 import furhatos.nlu.common.*
 
 
+/** Defines game mode */
+var MODE = "Demo"
+
+
 /**
  * Furhat tries to attract a users attention.
  *
@@ -147,7 +151,14 @@ val Explanation : State = state(Interaction) {
     onResponse<Yes> {
         users.current.played = true
         furhat.gesture(Nod(duration = 0.8), async = false)
-        call(sendWait("startGame"))
+        if (MODE == "Demo") {
+            // TODO; might require a simple gesture
+            furhat.say("Ok. But let's go for a test run first.")
+            furhat.say("Instead of an elephant we will build a simple square.")
+            call(sendWait("startDemo"))
+        } else {
+            call(sendWait("startGame"))
+        }
         goto(GatherInformation)
     }
 
@@ -180,7 +191,15 @@ val GameFinished : State = state(Interaction) {
     onEntry {
         furhat.attend(users.current)
         furhat.glance(RIGHT_BOARD, 2000)
-        if (users.current.right_state.isEmpty()) {
+        if (users.current.right_state.isEmpty() && users.current.left_state.isEmpty()) {
+            if (MODE == "Demo") {
+                furhat.say("I see you have understood the game.")
+                furhat.gesture(Wink)
+                furhat.say("Let's address the elephant in the room.")
+                delay(500)
+                call(sendWait("startGame"))
+                goto(GatherInformation)
+            }
             // wait for furhat to stop speaking
             while (furhat.isSpeaking()) {
                 delay(100)
@@ -200,6 +219,21 @@ val GameFinished : State = state(Interaction) {
                 }
             }
         } else {
+            if (MODE == "Demo") {
+                furhat.say("Oh no. We have run out of time.")
+                furhat.say("Here some hints that might help you.")
+                val textFile = javaClass.getClassLoader()
+                    .getResource("Hints")
+                    .readText(charset = Charsets.UTF_8).split("\n")
+                for (line in textFile) {
+                    furhat.say(furhat.voice.prosody(line, rate=0.9))
+                    delay(500)
+                }
+                furhat.gesture(awaitAnswer(duration = 3.0), async = false)
+                furhat.say("Let's try this again.")
+                call(sendWait("startDemo"))
+                goto(GatherInformation)
+            }
             furhat.stopSpeaking()
             furhat.gesture(hurt(duration=3.0))
             furhat.sigh()

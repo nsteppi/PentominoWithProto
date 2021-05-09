@@ -13,6 +13,7 @@ class GameState {
     data class Info(
         val left_board: List<PentoPiece>,
         val right_board: List<PentoPiece>,
+        val correctly_placed: List<PentoPiece>,
         val game: Game,
         val selected: String
     )

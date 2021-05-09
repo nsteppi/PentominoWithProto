@@ -22,9 +22,6 @@ import furhatos.nlu.common.Yes
 import furhatos.records.Location
 
 
-/** how many pento pieces are on the board at game start */
-const val PIECES_MAX = 12
-
 /** location of the tablet in meter */
 // x: how far to the right(positive) or left(negative) of the robot
 // y: difference between eye level of the robot and level of the object
@@ -53,8 +50,8 @@ val GatherInformation : State = state(GameRunning) {
         furhat.gesture(Gestures.Smile, async = false)
         furhat.say {
             random {
-                +"Great. Let's get started."
-                +"Ok, here we go."
+                +"Let's get started."
+                +"Here we go."
                 +"Glad you found the time."
             }
         }
@@ -63,9 +60,7 @@ val GatherInformation : State = state(GameRunning) {
 
     onEntry {
         furhat.glance(LEFT_BOARD)
-        if (users.current.left_state.size == PIECES_MAX
-            || users.current.left_state.isEmpty()
-        ) {
+        if (users.current.correctly_placed.size == users.current.left_state.size) {
             furhat.ask(
                 "Which piece do you want to start with?",
                 endSil = 1250, timeout = 20000
@@ -80,7 +75,7 @@ val GatherInformation : State = state(GameRunning) {
                 furhat.attend(LEFT_BOARD)
                 goto(PieceSelected)
             } else {
-                val pieceN = (PIECES_MAX - users.current.left_state.size) + 1
+                val pieceN = users.current.correctly_placed.size + 1
                 furhat.ask({
                     random {
                         +"Which piece do you want to select?"
@@ -347,22 +342,17 @@ val PlaceSelected : State = state(GameRunning) {
     }
 
     onResponse<Rotation> {
-        println(it.intent.dir) //TODO: remove
-        println(it.intent.degree) //TODO: remove
         raise(Action("rotateSelected", mapOf("angle" to it.intent.dir*it.intent.degree)))
     }
 
     onResponse<Mirror> {
-        println(it.intent.axis) //TODO: remove
         raise(Action("flipSelected", mapOf("axis" to it.intent.axis)))
     }
 
     onResponse<Move> {
         println(it.speech.text)
-        val otherIntent = it.findFirst(Rotation())
-        print(otherIntent)
-        if (otherIntent != null) {
-            raise(otherIntent)
+        if (it.intent.dist != null) {
+            raise(Action("moveSelected", mapOf("dir" to it.intent.dir as String, "dist" to it.intent.dist as Int)))
         } else {
             raise(Action("moveSelected", mapOf("dir" to it.intent.dir as String)))
         }
@@ -372,6 +362,13 @@ val PlaceSelected : State = state(GameRunning) {
         raise(Action("placeSelected"))
     }
 
+    onResponse<Again> {
+        if (users.current.prevAction != null) {
+            raise(Action(users.current.prevAction as String, users.current.prevParam as Map<String, Any>))
+        }
+        furhat.listen(timeout = 20000)
+    }
+
     onResponse<Back> {
         if (users.current.prevAction != null) {
             val prevAction = users.current.prevAction!!
@@ -379,9 +376,11 @@ val PlaceSelected : State = state(GameRunning) {
             when (prevAction) {
                 "moveSelected" -> {
                     val counterDir = mapOf("up" to "down", "down" to "up",
-                        "left" to "right", "right" to "left")
+                        "left" to "right", "right" to "left", "middle" to "middle")
                     val newValue = counterDir.getValue(prevParam.getValue("dir") as String)
-                    raise(Action(prevAction, mapOf("dir" to newValue)))
+                    if (newValue != "middle") {
+                        raise(Action(prevAction, mapOf("dir" to newValue)))
+                    }
                 }
                 "flipSelected" -> {
                     raise(Action(prevAction, prevParam))
@@ -390,17 +389,15 @@ val PlaceSelected : State = state(GameRunning) {
                     val newValue = -1*prevParam.getValue("angle") as Int
                     raise(Action(prevAction, mapOf("angle" to newValue)))
                 }
-                else -> { // shouldn't be triggered but better be sure
-                    furhat.listen(timeout = 20000)
-                }
             }
-
         }
+        furhat.say("There is no going back.")
+        furhat.listen(timeout = 20000)
     }
 
     onResponse<DontKnow> {
         furhat.attend(users.current)
-        furhat.gesture(awaitAnswer(duration = 3.0), async = false)
+        furhat.gesture(awaitAnswer(duration = 4.0), async = false)
         send("getHint")
         furhat.say {
             random {
@@ -415,12 +412,27 @@ val PlaceSelected : State = state(GameRunning) {
         reentry()
     }
 
+
     onResponse {
+        // One day we might not need the below block
+        // but until grammar entities can decide on
+        // whether they are greedy or not, we need it
+        val regex = Regex(
+            """\b((turn)|(rotate)""" +
+                    """|(spin)|(tilt)""" +
+                    """|(whirl)|(pivot)""" +
+                    """|(swing)|(swing)""" +
+                    """|(twist)|(perform))\b""", RegexOption.IGNORE_CASE
+        )
+        if (regex.containsMatchIn(it.speech.text)) {
+            raise(Action("rotateSelected", mapOf("angle" to 90)))
+        }
         furhat.say {
             random {
                 +"Again, please."
                 +"Wait, what?"
                 +"Pardon?"
+                +"Sorry?"
             }
         }
         furhat.gesture(
@@ -437,20 +449,17 @@ val PlaceSelected : State = state(GameRunning) {
         raise(DontKnow())
     }
 
-
     onEvent<Action>(instant = true) {
         furhat.attend(RIGHT_BOARD)
         if (it.param.isEmpty()) {
             send(it.text)
         } else {
             send(it.text, it.param)
+            users.current.prevAction = it.text
+            users.current.prevParam = it.param
         }
-        users.current.prevAction = it.text
-        users.current.prevParam = it.param
         furhat.listen(timeout = 20000)
     }
-
-
 
     onEvent("placementSuccessful") {
         furhat.attend(users.current)
@@ -461,6 +470,10 @@ val PlaceSelected : State = state(GameRunning) {
                 +"Great."
                 +"We are making progress."
                 +"This game is so fun."
+                +"Good work!"
+                +"Yes. That's it."
+                +"Well done!"
+                +"Good job!"
             }
         }
         goto(GatherInformation)
@@ -472,4 +485,3 @@ val PlaceSelected : State = state(GameRunning) {
 // - "right right right right down down down ... stop
 // - "right some more go on more more (signal of continuation) stop
 // - "right ... ... ... stop
-

@@ -11,11 +11,9 @@
 
 package furhatos.app.pentominowithfurhat
 
-import furhatos.app.pentominowithfurhat.flow.roundKnowledge
 import furhatos.app.pentominowithfurhat.nlu.Colors
 import furhatos.app.pentominowithfurhat.nlu.Positions
 import furhatos.app.pentominowithfurhat.nlu.Shapes
-import furhatos.flow.kotlin.users
 import furhatos.nlu.Response
 
 
@@ -86,12 +84,12 @@ class SharedKnowledge(response: Response<*>) {
     }
 
     /**
-     * Takes a list of [candidates] Pento Pieces and looks for one
-     * property the value of which is unique among all candidate.
+     * Takes a list of [candidates] Pentomino pieces and looks for one
+     * property the value of which is unique among all candidates.
      * If this could be a more detailed description of a property
      * the user already gave information on, it is not considered.
      *
-     * @return Natural language classifier for this property
+     * @return Natural language specifier for this property
      */
     fun getDisambiguatingProperty(candidates: MutableList<GameState.PentoPiece>): String {
         return when {
@@ -114,12 +112,21 @@ class SharedKnowledge(response: Response<*>) {
         }
     }
 
+    /**
+     * Check whether no useful information could be extracted from the response.
+     *
+     * @return `false` if the data base stored any valuable info,
+     *          `true` if the data base is the same as it was on initialization
+     */
     fun isEmpty(): Boolean {
         return this.color == null
                 && this.shape == null
                 && this.position == Positions()
     }
 
+    /**
+     * @return Natural language description of the content of the data base
+     */
     override fun toString(): String {
         return "${this.color?.color ?: ""} " +
                 "${this.shape?.shape ?: "" } piece " +

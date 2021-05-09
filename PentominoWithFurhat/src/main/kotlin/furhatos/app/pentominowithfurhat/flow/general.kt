@@ -32,9 +32,15 @@ var UPTODATE = true
 fun sendWait(name: String) = state(GameRunning){
     onEntry {
         UPTODATE = false
+        var time_out = 0
         send(name)
         while (!UPTODATE){
-            delay(50)
+            delay(100)
+            time_out += 100
+            if (time_out > 20000) {
+                println("Updating Information from web interface failed")
+                goto(Idle)
+            }
         }
         terminate()
     }
@@ -67,7 +73,7 @@ val Idle: State = state {
 
         // speech recognition phrases
         furhat.setSpeechRecPhrases(listOf(
-            "turn", "rotate", "spin", "tilt",
+            "furhat", "turn", "rotate", "spin", "tilt",
             "whirl", "pivot", "swing", "twist",
             "mirror", "reflect", "flip", "piece"
         ))
@@ -168,7 +174,7 @@ val GameRunning : State = state(Interaction) {
 
         users.current.left_state = latestGameData.left_board
         users.current.right_state = latestGameData.right_board
-        users.current.selected = latestGameData.selected
+        users.current.correctly_placed = latestGameData.correctly_placed
 
         // check game status to signal end of game if the case
         if (latestGameData.game.status in listOf("won","lost")) {
