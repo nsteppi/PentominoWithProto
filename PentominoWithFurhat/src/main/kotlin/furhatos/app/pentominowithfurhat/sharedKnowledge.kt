@@ -33,8 +33,11 @@ class SharedKnowledge(response: Response<*>) {
     var position: Positions = Positions()
 
     init {
+        // this is not beautiful but a better place couldn't be found
+        val text = response.text.replace(
+                            "right angle", "angle")
         this.color = response.findFirst(Colors())
-        this.shape = Shapes.getShape(response.findAll(Shapes()), response.text)
+        this.shape = Shapes.getShape(response.findAll(Shapes()), text)
         this.position = Positions.toCompPosition(response.findAll(Positions()))
     }
 

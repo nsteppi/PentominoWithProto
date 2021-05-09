@@ -75,7 +75,7 @@ val Idle: State = state {
         furhat.setSpeechRecPhrases(listOf(
             "furhat", "turn", "rotate", "spin", "tilt",
             "whirl", "pivot", "swing", "twist",
-            "mirror", "reflect", "flip", "piece"
+            "mirror", "reflect", "piece"
         ))
 
         if (users.count > 0) {

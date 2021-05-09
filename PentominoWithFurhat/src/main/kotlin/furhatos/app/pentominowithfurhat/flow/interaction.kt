@@ -137,7 +137,7 @@ val Explanation : State = state(Interaction) {
             if (i == 2) {
                 furhat.glance(users.current, 2000)
             }
-            furhat.say(furhat.voice.prosody(line, rate=0.9))
+            furhat.say(furhat.voice.prosody(line, rate=1.0))
             delay(500)
         }
         furhat.attend(users.current)
@@ -193,6 +193,7 @@ val GameFinished : State = state(Interaction) {
         furhat.glance(RIGHT_BOARD, 2000)
         if (users.current.right_state.isEmpty() && users.current.left_state.isEmpty()) {
             if (MODE == "Demo") {
+                MODE = "Game"
                 furhat.say("I see you have understood the game.")
                 furhat.gesture(Wink)
                 furhat.say("Let's address the elephant in the room.")
@@ -214,6 +215,7 @@ val GameFinished : State = state(Interaction) {
                     +"Good job!"
                     +"Great game! Thank you!"
                     +"Nice work, well done!"
+                    +"And that's how you build an elephant."
                     +"Winner, winner, chicken dinner!"
                     +"Yes! We won!"
                 }

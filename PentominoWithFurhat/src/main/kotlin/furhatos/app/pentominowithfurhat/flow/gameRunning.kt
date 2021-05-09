@@ -75,7 +75,9 @@ val GatherInformation : State = state(GameRunning) {
                 furhat.attend(LEFT_BOARD)
                 goto(PieceSelected)
             } else {
-                val pieceN = users.current.correctly_placed.size + 1
+                val pieceN = (users.current.correctly_placed.size
+                            - (users.current.correctly_placed.size
+                            + users.current.left_state.size)/ 2)
                 furhat.ask({
                     random {
                         +"Which piece do you want to select?"
@@ -277,7 +279,6 @@ val PieceSelected : State = state(GameRunning)  {
         furhat.attend(RIGHT_BOARD)
         call(sendWait("startPlacing"))
         furhat.say {
-            + "Okay."
             + Gestures.BrowRaise
             + Gestures.Smile
         }
@@ -319,7 +320,7 @@ val PlaceSelected : State = state(GameRunning) {
         furhat.attend(users.current)
         furhat.ask ({
             random {
-                +"Fine. Where do you want me to move the piece?"
+                +"Where do you want me to move the piece?"
                 +"Where to?"
                 +"Where should I move it?"
                 +"Where does this piece go?"
@@ -343,10 +344,12 @@ val PlaceSelected : State = state(GameRunning) {
 
     onResponse<Rotation> {
         raise(Action("rotateSelected", mapOf("angle" to it.intent.dir*it.intent.degree)))
+        furhat.listen(timeout = 20000)
     }
 
     onResponse<Mirror> {
         raise(Action("flipSelected", mapOf("axis" to it.intent.axis)))
+        furhat.listen(timeout = 20000)
     }
 
     onResponse<Move> {
@@ -356,10 +359,12 @@ val PlaceSelected : State = state(GameRunning) {
         } else {
             raise(Action("moveSelected", mapOf("dir" to it.intent.dir as String)))
         }
+        furhat.listen(timeout = 20000)
     }
 
     onResponse<Stop> {
         raise(Action("placeSelected"))
+        furhat.listen(timeout = 20000)
     }
 
     onResponse<Again> {
@@ -399,6 +404,7 @@ val PlaceSelected : State = state(GameRunning) {
         furhat.attend(users.current)
         furhat.gesture(awaitAnswer(duration = 4.0), async = false)
         send("getHint")
+        furhat.attend(RIGHT_BOARD)
         furhat.say {
             random {
                 +"You seem to be in desperate need of some hint. Here."
@@ -406,7 +412,6 @@ val PlaceSelected : State = state(GameRunning) {
                 +"That's where the piece goes."
             }
         }
-        furhat.attend(RIGHT_BOARD)
         delay(1500)
         send("removeHint")
         reentry()
@@ -426,22 +431,23 @@ val PlaceSelected : State = state(GameRunning) {
         )
         if (regex.containsMatchIn(it.speech.text)) {
             raise(Action("rotateSelected", mapOf("angle" to 90)))
-        }
-        furhat.say {
-            random {
-                +"Again, please."
-                +"Wait, what?"
-                +"Pardon?"
-                +"Sorry?"
+        } else {
+            furhat.gesture(
+                listOf(
+                    awaitAnswer(duration = 5.0),
+                    questioning(duration = 2.0),
+                    BrowFrown
+                ).shuffled().take(1)[0]
+            )
+            furhat.say {
+                random {
+                    +"Again, please."
+                    +"Wait, what?"
+                    +"Pardon?"
+                    +"Sorry?"
+                }
             }
         }
-        furhat.gesture(
-            listOf(
-                awaitAnswer(duration = 5.0),
-                questioning(duration = 2.0),
-                BrowFrown
-            ).shuffled().take(1)[0]
-        )
         furhat.listen(timeout = 20000)
     }
 
@@ -458,7 +464,6 @@ val PlaceSelected : State = state(GameRunning) {
             users.current.prevAction = it.text
             users.current.prevParam = it.param
         }
-        furhat.listen(timeout = 20000)
     }
 
     onEvent("placementSuccessful") {
@@ -466,7 +471,6 @@ val PlaceSelected : State = state(GameRunning) {
         furhat.stopSpeaking()
         furhat.say {
             random {
-                +"And that's how you build an elephant."
                 +"Great."
                 +"We are making progress."
                 +"This game is so fun."
@@ -474,6 +478,7 @@ val PlaceSelected : State = state(GameRunning) {
                 +"Yes. That's it."
                 +"Well done!"
                 +"Good job!"
+                +"Things are taking shape."
             }
         }
         goto(GatherInformation)

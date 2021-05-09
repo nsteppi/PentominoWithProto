@@ -418,7 +418,8 @@ val MoveGrammarEn =
         rule(public = true) {
             group {
                 ruleref("distance")
-                -("block" / "blocks" / "field" / "step" / "more" / "farther" / "column" / "row")
+                -"more"
+                -("block" / "blocks" / "bucks" / "field" / "step" / "more" / "farther" / "column" / "row" / "place")
                 -"to"
                 -"the"
                 choice {
@@ -431,6 +432,24 @@ val MoveGrammarEn =
                 }
             }
         }
+
+        /**
+         * A fixed movement goal.
+         * e.g. go down one block
+         */
+        rule(public = true) {
+            choice {
+                entity<Top>() tag { Move(dir="up", dist=ref["distance"] as Int) }
+                +("higher"/"elevate"/"lift"/"raise"/"up"/"upward"/"hoist"/"uplift") tag { Move(dir="up", dist=ref["distance"] as Int) }
+                entity<Bottom>() tag { Move(dir="down", dist=ref["distance"] as Int) }
+                +("plummet"/"drop"/"down"/"downward"/"downwards") tag { Move(dir="down", dist=ref["distance"] as Int) }
+                entity<Left>() tag { Move(dir="left", dist=ref["distance"] as Int) }
+                entity<Right>() tag { Move(dir="right", dist=ref["distance"] as Int) }
+            }
+            -("by" / "for" / "to")
+            ruleref("distance")
+        }
+
 
         rule("distance", public = false) {
             +("1" / "one" / "a notch" / "a bit" / "slightly") tag { 1 }
@@ -471,7 +490,7 @@ class Back : EnumEntity() {
 class Again : EnumEntity() {
     override fun getEnum(lang: Language): List<String> {
         return listOf(
-            "again", "repeat", "go on", "once more",
+            "again", "repeat", "go on", "once more", "some more",
             "one more time", "a second time", "another time"
         )
     }

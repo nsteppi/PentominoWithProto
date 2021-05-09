@@ -338,7 +338,7 @@ const App = () => {
   const fixCorrectlyPlaced = (shape_to_check) => {
     if (placedShapes.find(s => s.name == shape_to_check.name) && // Stein muss rechts liegen ...
         isCorrectlyPlaced(shape_to_check)) { // ... und an der richtigen Stelle auf dem Board sein
-      if (gameState.correctly_placed.find(shape => shape.name == shape_to_check.name) == null){
+      if (gameState.correctly_placed.filter(shape => shape.name === shape_to_check.name).length === 0){
         placementSuccessful()
         dispatch({type: 'pieceAtGoal', piece: shape_to_check});
       }
