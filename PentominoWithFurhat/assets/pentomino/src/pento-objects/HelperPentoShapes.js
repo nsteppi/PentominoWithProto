@@ -204,7 +204,7 @@ const _new_pento_shape = (id, type, color, is_mirrored, rotation, block_size) =>
 
 export const pento_create_shape = (id, x, y, type, color, is_mirrored, rotation, block_size) => {
     //create empty shape
-    var new_shape = _new_pento_shape(id, type, color, is_mirrored, rotation, block_size);
+    var new_shape = _new_pento_shape(id, type, color, is_mirrored, 0, block_size);
 
     switch (type) {
         case 'point':

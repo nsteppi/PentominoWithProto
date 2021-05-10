@@ -2,26 +2,9 @@
  * App.js
  * Maike Paetzel-Prüsmann
  *
- * Getroffene Anpassungen:
- * - Roboter erhielt nur bei Änderung der Zeit aktuelle Informationen, also nicht mehr nach Spielende.
- *   Damit er bemerkt, dass das Spiel geendet hat, senden wir ein zusätzliches Update an den Roboter.
- *   + sendDataToFurhat()     [Zeile 340]
- *
- * - Wenn ein neues Spiel gestartet wurde, dann wurde das PopUp Fenster von einem vorherigen Durchlauf
- *   nicht automatisch geschlossen, wir lassen sich das PopUp nun automatisch bei startGame schließen.
- *   + if (isPopupLostOpen) {
- *         togglePopupLost()
- *         }
- *     if (isPopupWonOpen) {
- *        togglePopupWon()
- *        }                   [Zeile 106-111]
- *
- *  - Die Spielzeit hat sich ins negative bewegt. Um dies zu beheben haben wir die Code Zeilen
- *    aus [Zeile 277-279] nach [Zeile 339-241] bewegt.
- *
- * Durch:
+ * Modifikationen durch:
  * - Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
- * - WiSe 20/21
+ * - SoSe 21
  * - Kotlin 1.3.70
  * - Windows 10
  */
@@ -33,7 +16,7 @@ import './css/App.css';
 import React, { useEffect, useReducer, useState, useRef } from 'react'
 import { PentoBoard } from "./pento-objects/PentoBoard";
 import { PentoConfig } from "./config";
-import { configPerShape, createNewPentoPieceInShape, generateElephantShape } from "./pento-objects/HelperDrawComplexShapes";
+import { configPerShape, createNewPentoPieceInShape, generateShape } from "./pento-objects/HelperDrawComplexShapes";
 import { grid_cell_to_coordinates, coordinates_to_grid_cell } from "./pento-objects/HelperDrawingBoard";
 import Furhat from 'furhat-gui'
 
@@ -42,38 +25,14 @@ const App = () => {
 
   const pento_config = new PentoConfig()
 
-  const n_blocks = pento_config.n_blocks;
-  const board_size = pento_config.board_size;
-  const block_size = pento_config.block_size;
-  const grid_x = 0;
-  const grid_y = 0;
+  // Ist die Web-UI mit dem Roboter verbunden
+  const [initialized, setInitialized] = useState(false)
 
-  // Diese Variable setzt, wie lang das Game im Webinterface dauert (in Sekunden)
-  const game_time = 600;
+  // Wie lange dauert das Spiel im Webinterface (in Sekunden)
+  const [gameTime, setGameTime] = useState(pento_config.game_time)
 
-  const grid_config = {
-    "n_blocks": n_blocks,
-    "board_size": board_size,
-    "block_size": block_size,
-    "x": grid_x,
-    "y": grid_y
-  }
-
-  // Der initiale GameState
-  const initialState = {
-    "left_board": [],
-    "right_board": [],
-    "correctly_placed": [],
-    "game": {
-      "status": "initial",
-      "startTime": undefined,
-      "time": game_time,
-    },
-    "selected": "None",
-    "selected_coords": [],
-    "selected_on_board": ""
-  }
-
+  // Welche Form bauen wir gerade
+  const [finalShape, setFinalShape] = useState('elephant')
 
   // Dient dazu, den Intervall-Handler für die Spielzeit nach Ablauf der Spielzeit wieder zu zerstören
   // (ansonsten würde die Spielzeit negativ werden)
@@ -88,32 +47,33 @@ const App = () => {
   // Die momentan ausgewählten Pento-Steine
   const [activeShape, setActiveShape] = useState([]);
 
-  // Speichert, ob die Web-UI mit dem Roboter verbunden ist
-  const [initialized, setInitialized] = useState(false)
-
   //Speichert, ob wir gerade unser Popup für Spiel gewonnen anzeigen
-  const [isPopupWonOpen, setIsPopupWonOpen] = useState(false);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-  //Speichert, ob wir gerade unser Popup für Spiel gewonnen anzeigen
-  const [isPopupLostOpen, setIsPopupLostOpen] = useState(false);
-
-  const togglePopupWon = () => {
-    setIsPopupWonOpen(!isPopupWonOpen);
+  const togglePopup = () => {
+    setIsPopupOpen(!isPopupOpen);
   };
 
-  const togglePopupLost = () => {
-    setIsPopupLostOpen(!isPopupLostOpen);
-  };
+  // Der initiale GameState
+  const initialState = {
+    "left_board": [],
+    "right_board": [],
+    "correctly_placed": [],
+    "game": {
+      "status": "initial",
+      "startTime": undefined,
+      "time": gameTime,
+    },
+    "selected": "None",
+    "selected_coords": []
+  }
 
-  //Hält den momentanen GameState und sorgt dafür, dass Änderungen korrekt umgesetzt werden
+  // Hält den momentanen GameState und sorgt dafür, dass Änderungen korrekt umgesetzt werden
   const [gameState, dispatch] = useReducer((state, action) => {
     switch (action.type) {
       case 'gameStart':
-        if (isPopupLostOpen) {
-          togglePopupLost()
-        }
-        if (isPopupWonOpen) {
-          togglePopupWon()
+        if (isPopupOpen) {
+          togglePopup()
         }
         return {
           ...state,
@@ -129,25 +89,10 @@ const App = () => {
           selected: action.piece.name,
         };
       }
-      case 'placeRight': {
-        console.log("Placed on the right board")
-        return {
-          ...state,
-          selected_on_board: "right"
-        }
-      }
-      case 'placeLeft': {
-        console.log("Placed on the left board")
-        return {
-          ...state,
-          selected_on_board: "left"
-        }
-      }
       case 'deselectPiece': {
         return {
           ...state,
-          selected: "None",
-          selected_on_board: ""
+          selected: "None"
         };
       }
       case 'updateCoords': {
@@ -155,7 +100,7 @@ const App = () => {
         // falls kein Stein aktiv, leeres Array speichern
         return {
           ...state,
-          selected_coords: (action.x < 0 || action.y < 0) ? [] : coordinates_to_grid_cell(action.x, action.y, grid_config.block_size)
+          selected_coords: (action.x < 0 || action.y < 0) ? [] : coordinates_to_grid_cell(action.x, action.y, pento_config.block_size)
         }
       }
       case 'addToRightBoard':
@@ -192,27 +137,24 @@ const App = () => {
         };
       case 'resetGame':
         return {
-          "left_board": [],
-          "right_board": [],
-          "correctly_placed": [],
-          "game": {
-            "status": "initial",
-            "startTime": undefined,
-            "time": game_time,
+          left_board: [],
+          right_board: [],
+          correctly_placed: [],
+          game: {
+            status: "initial",
+            startTime: undefined,
+            time: gameTime,
           },
-          "selected": "None",
-          "selected_coords": [],
-          selected_on_board: ""
+          selected: "None",
+          selected_coords: []
         }
       case 'refreshTime':
-
         const currentTime = new Date().getTime();
-        const newDiff = game_time - Math.floor((currentTime - state.game.startTime) / 1000.0);
+        const newDiff = gameTime - Math.floor((currentTime - state.game.startTime) / 1000.0);
         let newStatus = state.game.status;
         if (newDiff <= 0){
           newStatus = 'lost'
         }
-
         return {
           ...state,
           game: {
@@ -221,64 +163,32 @@ const App = () => {
             time: newDiff
           }
         };
-
       default:
         return state
-
     }
   }, initialState);
 
 
-  /**
-   * Hier erzeugen wir unseren Popup für den Fall, dass wir das Spiel gewonnen haben
-   * @param props
-   * @returns {*}
-   * @constructor
-   */
-  const PopupWon = props => {
-    return (
-        <div className="popup-box">
-          <div className="box">
-            <b>Congratulations!</b>
-            <p>You won this round of Pentomino.</p>
-            <button onClick={props.handleClose}>Okay</button>
-          </div>
-        </div>
-    );
+  const getHint = () => {
+    if (activeShape.length > 0) {
+      let active_template = placedShapes.filter(
+          s => pento_config.get_color_name(s.color) === pento_config.templ_col
+                && s.type === activeShape[0].type
+      )
+      selectPentoPiece(active_template[0].name)
+    }
   };
 
-  /**
-   * Hier erzeugen wir unseren Popup für den Fall, dass wir das Spiel verloren haben
-   * @param props
-   * @returns {*}
-   * @constructor
-   */
-  const PopupLost = props => {
-    return (
-        <div className="popup-box">
-          <div className="box">
-            <b>Awwwwww!</b>
-            <p>Sorry, but the time is up - you lost this round of Pentomino.</p>
-            <button onClick={props.handleClose}>Okay</button>
-          </div>
-        </div>
-    );
+  const removeHint = () => {
+    if (activeShape.length > 0) {
+      let active = placedShapes.filter(
+          s => pento_config.get_color_name(s.color) !== pento_config.templ_col
+              && s.type === activeShape[0].type
+      )
+      selectPentoPiece(active[0].name)
+    }
   };
 
-
-  /**
-   * Rendert die Buttons unter dem Game-Board, mit denen zu Testzwecken einzelne Teile ausgewählt werden können.
-   */
-  const renderButtons = () => {
-    return initialShapes.concat(placedShapes.filter(s => pento_config.get_color_name(s.color) != pento_config.templ_col)
-    ).sort().map(element => {
-      return <button id={"pento_" + element.type}
-                     style={{ visibility: gameState.correctly_placed.find(shape => shape.name == element.name)?'hidden':'visible'}}
-                     onClick={() => {
-                       selectPentoPiece(element.name);
-                     }}> {pento_config.get_color_name(element.color)} {element.type} </button>
-    })
-  };
 
   /**
    * Diese Methode wird aufgerufen, wenn ein Pentomino-Stein ausgewählt wird (entweder durch Button-klick oder durch
@@ -293,9 +203,9 @@ const App = () => {
       // Evtl. laufende Bewegung des alten aktiven Steins stoppen.
       stopMove();
       setActiveShape(initialShapes.concat(placedShapes).filter(item => item.name == pento_name.toString()));
-      dispatch({type: 'placeLeft'});
     }
   };
+
   /**
    * Diese Methode sorgt dafür, dass alle momentan ausgewählten Spielsteine nicht mehr ausgewählt sind
    * Wird entweder durch Button-Klick oder Event vom Roboter aufgerufen.
@@ -331,9 +241,14 @@ const App = () => {
    */
   const moveActive = (dx, dy) => {
     let active = activeShape[0];
+    // Sicherstellen, dass der Stein das Spielfeld nicht verlässt
+    let new_x = Math.max(2*pento_config.block_size, active.x+dx);
+    new_x   = Math.min(new_x, pento_config.board_size - 2*pento_config.block_size);
+    let new_y = Math.max(2*pento_config.block_size, active.y+dy);
+    new_y   = Math.min(new_y, pento_config.board_size - 2*pento_config.block_size);
     // den Gamestate mit den neuen Koordinaten updaten
-    dispatch({type: 'updateCoords', x:active.x+dx, y:active.y+dy});
-    active.moveTo(active.x+dx, active.y+dy);
+    dispatch({type: 'updateCoords', x:new_x, y:new_y});
+    active.moveTo(new_x, new_y);
   };
 
   /**
@@ -347,7 +262,6 @@ const App = () => {
       // evtl. stattfindende Bewegung anhalten, aber für eine flüssige Richtungsänderung
       // Stein nicht ein
       stopMove(false);
-      //let dist_y = pento_config.board_size/2 - active.location.y;
       // setInterval wird genutzt, um die Funktion moveActive in regelmäßigen Abständen auszuführen
       switch (dir) {
         case 'up':
@@ -366,7 +280,9 @@ const App = () => {
           let active = activeShape[0];
           let dist_x = pento_config.board_size/2 - active.x;
           let dist_y = pento_config.board_size/2 - active.y;
-          moveHandler.current = setInterval(moveActive, interval, step, step*Math.abs(dist_y/dist_x));
+          dist_y = step*Math.abs(dist_y/dist_x)*Math.sign(dist_y)
+          dist_x = step*Math.sign(dist_x)
+          moveHandler.current = setInterval(moveActive, interval, dist_x, dist_y);
           break;
         default:
           console.log(`Unknown direction: ${dir} at startMove`);
@@ -422,7 +338,10 @@ const App = () => {
   const fixCorrectlyPlaced = (shape_to_check) => {
     if (placedShapes.find(s => s.name == shape_to_check.name) && // Stein muss rechts liegen ...
         isCorrectlyPlaced(shape_to_check)) { // ... und an der richtigen Stelle auf dem Board sein
-      dispatch({type: 'pieceAtGoal', piece: shape_to_check});
+      if (gameState.correctly_placed.filter(shape => shape.name === shape_to_check.name).length === 0){
+        placementSuccessful()
+        dispatch({type: 'pieceAtGoal', piece: shape_to_check});
+      }
       setActiveShape([]);
     }
   }
@@ -432,18 +351,20 @@ const App = () => {
    * {zu testendes PentoShape object} shape
    */
   const isCorrectlyPlaced = (shape) => {
-    // Shape darf nicht gespiegelt sein
-    if (shape.is_mirrored) { return false; }
-    let goalCoords = configPerShape("elephant", grid_config.n_blocks);
+    let goalCoords = configPerShape(finalShape, pento_config.n_blocks);
+
     goalCoords = grid_cell_to_coordinates(goalCoords['x'] + goalCoords['coords'][shape.type]['x'],
         goalCoords['y'] + goalCoords['coords'][shape.type]['y'],
-        grid_config.block_size);
-    if (shape.x != goalCoords[0] || shape.y != goalCoords[1]) { return false; };
+        pento_config.block_size);
+    if (shape.x != goalCoords[0] || shape.y != goalCoords[1]) {return false; };
     // Die Zielrotation ist 0. Das 'rotation'-Attribut eines Steins kann jedoch nicht einfach
     // verwendet werden, da der Wert bei Verwendung einer Spiegelung ('flip') verfälscht
     // werden kann. Hier wird eine etwas 'hacky' Lösung verwendet: Es wird eine neue Shape
     // desselben Typs erstellt und die Blockanordnung abgeglichen.
-    let dummy_shape = createNewPentoPieceInShape("elephant", grid_config, shape.type, "black", -1);
+    let dummy_shape = createNewPentoPieceInShape(finalShape, pento_config, shape.type, "black", -1);
+    // Überprüfe Spiegelung
+    if (shape.is_mirrored !== dummy_shape.is_mirrored) { return false; };
+    // Überprüfe Rotation
     let shape_grid = shape.get_internal_grid();
     let dummy_grid = dummy_shape.get_internal_grid();
     for (let row = 0; row < shape.get_grid_height(); row++) {
@@ -465,14 +386,9 @@ const App = () => {
   const lockActiveOnGrid = () => {
     if (activeOnRightBoard()) {
       let active = activeShape[0];
-      // Sicherstellen, dass der Stein das Spielfeld nicht verlässt
-      let new_x = Math.max(active.x, grid_config.x + 2*grid_config.block_size);
-      new_x   = Math.min(new_x, grid_config.board_size - 2*grid_config.block_size);
-      let new_y = Math.max(active.y, grid_config.y + 2*grid_config.block_size);
-      new_y   = Math.min(new_y, grid_config.board_size - 2*grid_config.block_size);
       // Stein auf einem Quadrat einrasten lassen
-      new_x = Math.floor(((new_x - grid_config.x) / grid_config.block_size) + 0.5) * grid_config.block_size;
-      new_y = Math.floor(((new_y - grid_config.y) / grid_config.block_size) + 0.5) * grid_config.block_size;
+      let new_x = Math.floor(((active.x - pento_config.x) / pento_config.block_size) + 0.5) * pento_config.block_size;
+      let new_y = Math.floor(((active.y - pento_config.y) / pento_config.block_size) + 0.5) * pento_config.block_size;
       active.moveTo(new_x, new_y);
       dispatch({type: 'updateCoords', x:new_x, y:new_y});
     } else {
@@ -480,24 +396,37 @@ const App = () => {
     }
   }
 
+  const startGame = () => {
+    setFinalShape('elephant')
+    console.log("from start game")
+    console.log(finalShape)
+    setGameTime(pento_config.game_time)
+    start('elephant')
+  }
+
+  const startDemo = () => {
+    setFinalShape('block')
+    setGameTime(pento_config.demo_time)
+    start('block')
+  }
+
   /**
    * Diese Methode wird aufgerufen, um das Spiel zu starten (entweder durch Button-klick oder durch Event vom Roboter)
    */
-  const startGame = () => {
-    // Alle aktuellen Spielsteine auf dem rechten Board löschen
+  const start = (shape) => {
     dispatch({type: "resetGame"});
+    // Alle aktuellen Spielsteine auf dem rechten Board löschen
     setPlacedShapes([]);
-
     // ALle aktuell ausgewählten Spielsteine löschen
     setActiveShape([]);
-    let [origin, goal] = generateElephantShape("elephant", pento_config, grid_config);
+
+    let [origin, goal] = generateShape(shape, pento_config);
     setInitialShapes(origin);
 
-    if (pento_config.provide_template) {
-      setPlacedShapes(goal);
-      for (let temp_piece of goal) {
-        dispatch({type: 'pieceAtGoal', piece: temp_piece})
-      }
+    // Registriere Template Teile als korrekt platziert
+    setPlacedShapes(goal);
+    for (let temp_piece of goal) {
+      dispatch({type: 'pieceAtGoal', piece: temp_piece})
     }
 
     dispatch({type: 'gameStart'})
@@ -528,16 +457,16 @@ const App = () => {
       if (!to_replace) { return; }
 
       // Kopie des aktiven Stein erstellen, mit anderer Position, aber gleicher Rotation und Spiegelung
-      let new_shape = createNewPentoPieceInShape("upper_left_corner", grid_config, to_replace.type, to_replace.color, to_replace.id);
-      // wie beim Generieren: erst rotieren, dann spiegeln
-      if (to_replace.rotation != 0) { new_shape.rotate(to_replace.rotation); }
+      let new_shape = createNewPentoPieceInShape("upper_left_corner", pento_config, to_replace.type, to_replace.color, to_replace.id);
+
       // _is_mirrored speichert, ob geflipped wurde, is_mirrored gibt für symmetrische Shapes immer false zurück
       if (to_replace._is_mirrored) { new_shape.flip('vertical'); }
+      // wie beim Generieren: erst rotieren, dann spiegeln
+      if (to_replace.rotation !=  0) { new_shape.rotate(to_replace.rotation); }
 
       const newPiece = pentoPieceToObj(new_shape.name, new_shape.type, new_shape.color, new_shape.x, new_shape.y);
       dispatch({type: 'addToRightBoard', piece: newPiece});
       dispatch({type: 'removeFromLeftBoard', piece: to_replace});
-      dispatch({type: 'placeRight'});
 
       setPlacedShapes(placedShapes.concat(new_shape));
       setInitialShapes(initialShapes.filter(item => item.name !== to_replace.name));
@@ -578,12 +507,7 @@ const App = () => {
     // Setzt den Alert für ein gewonnenes / verlorenes Spiel
     if (['lost', 'won'].includes(gameState.game.status)){
       sendDataToFurhat()
-      if ('lost' === gameState.game.status){
-        togglePopupLost();
-      }
-      if ('won' === gameState.game.status){
-        togglePopupWon();
-      }
+      togglePopup();
       if (gameTimeHandler.current){
         clearInterval(gameTimeHandler.current)
       }
@@ -594,10 +518,11 @@ const App = () => {
    * Dies wird getriggert, wenn es eine Änderung im Spielstatus oder der Liste mit Steinen auf dem linken Board gibt
    */
   useEffect(() => {
+    let shape_config = configPerShape(finalShape, pento_config.n_blocks)
     // Wenn auf beiden Boards keine Steine mehr verfügbar sind (alle korrekt plaziert sind)
     // und das Spiel noch läuft, haben wir gewonnen
     if (gameState.game.status === 'ongoing'
-        && gameState.correctly_placed?.length === (1 + (pento_config.provide_template ? 1 : 0))*pento_config.get_pento_types().length) {
+        && gameState.correctly_placed?.length === 2*Object.keys(shape_config["coords"]).length) {
       dispatch({type: 'gameWon'});
     }
 
@@ -605,10 +530,10 @@ const App = () => {
       // Wir subscriben zu dem Event, das vom Roboter gesendet werden kann, um einen Spielstein auszuwählen
       window.furhat.subscribe('selectPiece', function (params) {
         selectPentoPiece(params.piece)
-      });
+      })
     }
 
-  }, [gameState.correctly_placed, gameState.game.status]);
+  }, [gameState.correctly_placed, gameState.game.status, activeShape]); //placedShapes
 
   /**
    * Hier werden Änderungen im aktuell ausgewählten Spielstein an die richtigen Stellen kommuniziert.
@@ -641,6 +566,9 @@ const App = () => {
       // auf dem rechten Board zu bewegen
       window.furhat.subscribe('moveSelected', function (params) {
         startMove(params.dir)
+        if (params.dist !== undefined) {
+            setTimeout(stopMove, params.dist*(pento_config.block_size/MOVESPEED)*MOVEFREQ);
+        }
       })
 
       // Wir subscriben zu dem Event, das vom Roboter gesendet werden kann, um den aktuell ausgewählten Spielstein
@@ -660,30 +588,35 @@ const App = () => {
       window.furhat.subscribe('flipSelected', function (params) {
         flipActive(params.axis)
       })
+
+      window.furhat.subscribe('getHint', function () {
+        getHint()
+      })
+
+      window.furhat.subscribe('removeHint', function() {
+        removeHint()
+      })
     }
   }, [activeShape]);
 
-  /**
-   * Bei jedem Update in der Spielzeit (also einmal die Sekunde) wird der aktuelle Spielstand and Furhat gesendet
-   */
+  /** Einmal die Sekunde beim Update der Spielzeit wird der aktuelle Spielstand an Furhat gesendet */
   useEffect(() => {
     sendDataToFurhat()
-  }, [gameState.game.time, gameState.correctly_placed, gameState.left_board]);
+  }, [gameState.game.time, gameState.left_board]);
 
-  /**
-   * Wenn die Web-UI initialisiert wird, verbinden wir uns mit dem Roboter.
-   * Initial hören wir nur auf "startGame" events.
-   */
+  /** Wenn die Web-UI initialisiert wird, verbinden wir uns mit dem Roboter. */
   useEffect(() => {
     Furhat(function (furhat) {
-
       window.furhat = furhat
       // We subscribe to the event to start the game
       furhat.subscribe('startGame', function () {
         startGame()
       });
+      // We subscribe to the event to start a short demo game
+      furhat.subscribe('startDemo', function () {
+        startDemo()
+      });
     })
-
   }, [])
 
   /**
@@ -708,9 +641,11 @@ const App = () => {
     initializationMonitor()
   }, [])
 
+
   /**
-   * Hilfsmethode, die Daten an den Roboter sendet
+   * ** EVENTS FÜR FURHAT **
    */
+
   const sendDataToFurhat = () => {
     if(window.furhat) {
       window.furhat.send({
@@ -720,20 +655,64 @@ const App = () => {
     }
   }
 
+  const placementSuccessful = () => {
+    if(window.furhat) {
+      window.furhat.send({
+        event_name: "placementSuccessful"
+      })
+    }
+  }
 
   /**
-   * Hier werden die einzelnen Komponenten in der Web-UI angezeigt
+   * ** WEBSITE LAYOUT KOMPONENTEN **
    */
+
+  /** Hier erzeugen wir unseren Popup für das Ende des Spieles */
+  const Popup = props => {
+    return (
+        <div className="popup-box">
+          <div className="box">
+            <b>{props.title}</b>
+            <p>{props.message}</p>
+            <button onClick={props.handleClose}>Okay</button>
+          </div>
+        </div>
+    );
+  };
+
+  /**
+   * Rendert die Buttons unter dem Game-Board, mit denen zu Testzwecken einzelne Teile ausgewählt werden können.
+   * Nicht gerendert werden Buttons für Teile, die als Template dienen.
+   */
+  const renderButtons = () => {
+    return initialShapes.concat(placedShapes.filter(
+        s => pento_config.get_color_name(s.color) !== pento_config.templ_col)
+    ).sort().map(element => {
+      return <button
+              id={"pento_" + element.type}
+              style={{ visibility: gameState.correctly_placed.find(shape => shape.name == element.name) ? 'hidden':'visible'}}
+              onClick={() => {selectPentoPiece(element.name);}}>
+                {pento_config.get_color_name(element.color)} {element.type}
+            </button>
+    })
+  };
+
+
+  /** Hier werden die einzelnen Komponenten in der Web-UI angezeigt */
   return (
       <div className="App">
         <div className="twelve columns">
           <h5>Pentomino Game</h5>
         </div>
-        {isPopupWonOpen && <PopupWon
-            handleClose={togglePopupWon}
+        {isPopupOpen && gameState.game.status === 'won' && <Popup
+            handleClose={togglePopup}
+            title="Congratulations!"
+            message="You won this round of Pentomino."
         />}
-        {isPopupLostOpen && <PopupLost
-            handleClose={togglePopupLost}
+        {isPopupOpen && gameState.game.status === 'lost' && <Popup
+            handleClose={togglePopup}
+            title="The time is up!"
+            message="But there is always a next time."
         />}
         <div className="row">
           <div className="six columns">
@@ -747,19 +726,13 @@ const App = () => {
         <div className="row">
           <div className="five columns">
             <PentoBoard shapes={initialShapes}
-                        activeShape={ activeOnLeftBoard() ? activeShape[0] : null}
-                        grid_properties={{
-                          "title": "Initial",
-                          "with_grid": true,
-                          "with_tray": true,
-                          "x": grid_x,
-                          "y": grid_y
-                        }}
-                        config={{ "n_blocks": n_blocks, "board_size": board_size, "block_size": block_size }}
+                        activeShape={activeOnLeftBoard() ? activeShape[0]:null}
+                        text={"Initial"}
+                        config={pento_config}
             />
           </div>
           <div className="two columns">
-            <br/>
+            <button id="startBtn" onClick={() => startDemo()}>Start New Demo</button>
             <button id="startBtn" onClick={() => startGame()}>Start new game</button>
             <button id="placeBtn" onClick={() => placeSelected()}>Place selected</button>
             <button id="placeBtn" onClick={() => deselect()}>Deselect Piece</button>
@@ -778,15 +751,9 @@ const App = () => {
           </div>
           <div className="five columns">
             <PentoBoard shapes={placedShapes}
-                        activeShape={ activeOnRightBoard() ? activeShape[0] : null}
-                        grid_properties={{
-                          "title": "Elephant",
-                          "with_grid": true,
-                          "with_tray": true,
-                          "x": grid_x,
-                          "y": grid_y
-                        }}
-                        config={{ "n_blocks": n_blocks, "board_size": board_size, "block_size": block_size }}
+                        activeShape={activeOnRightBoard() ? activeShape[0] : null}
+                        text={"Elephant"}
+                        config={pento_config}
             />
           </div>
         </div>

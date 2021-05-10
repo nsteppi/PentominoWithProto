@@ -3,7 +3,7 @@
  * Contains several custom voice transformations to accompany the experience.
  *
  * Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
- * WiSe 20/21
+ * SoSe21
  * Kotlin 1.3.70
  * Windows 10
 */
@@ -12,6 +12,23 @@ package furhatos.app.pentominowithfurhat.flow
 
 import furhatos.flow.kotlin.Furhat
 import furhatos.flow.kotlin.voice.PollyNeuralVoice
+import furhatos.flow.kotlin.voice.PollyVoice
+
+
+/** exasperated breathing sound, more breathy than sigh */
+fun Furhat.breathing(){
+    val oldVoice = voice
+    voice = PollyVoice.Matthew()
+    say(PollyVoice.Matthew().breath(
+        duration = PollyVoice.BreathDuration.LONG,
+        volume=PollyVoice.BreathVolume.XLOUD
+    ))
+    say(PollyVoice.Matthew().breath(
+        duration = PollyVoice.BreathDuration.MEDIUM,
+        volume=PollyVoice.BreathVolume.XLOUD
+    ))
+    voice = oldVoice
+}
 
 
 /** a mixture of disappointed and sad but mainly spiritless */
@@ -24,6 +41,7 @@ fun Furhat.deflated(text: String) {
     )
 }
 
+
 /** the sound you make when you want someone to be quiet */
 fun Furhat.hush() {
     say(voice.prosody(
@@ -32,6 +50,7 @@ fun Furhat.hush() {
         )
     )
 }
+
 
 /** audible breathing sound */
 fun Furhat.sigh() {

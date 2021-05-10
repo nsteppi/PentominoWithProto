@@ -1,12 +1,29 @@
 import {grid_cell_to_coordinates} from "./HelperDrawingBoard";
 import {pento_create_shape} from "./HelperPentoShapes";
-import {PentoConfig} from "../config";
+
 
 export const configPerShape = (shape, n_blocks) => {
-
-    let shape_config = {"x": -1, "y": -1, "coords": {}}
+    // if no value for rotation of a shape present 0 is assume
+    // if no value for mirror of shape present false is assumed
+    let shape_config = {"x": -1, "y": -1, "coords": {}, "rotation": {}, "mirror": {}}
 
     switch (shape) {
+        case "block":
+            shape_config["x"] = Math.max(0, Math.floor((n_blocks-11) / 2));
+            shape_config["y"] = Math.max(0, Math.floor((n_blocks-9) / 2));
+            shape_config["coords"] = {
+                'P': {'x':6 , 'y':4},
+                'U': {'x':4 , 'y':4},
+                'V': {'x':7 , 'y':4}
+            };
+            shape_config["rotation"] = {
+                'P': 270,
+                'V': 180
+            };
+            shape_config["mirror"] = {
+                'P': true
+            };
+            return shape_config;
 
         case "elephant":
             shape_config["x"] = Math.max(0, Math.floor((n_blocks-11) / 2));
@@ -41,56 +58,69 @@ export const configPerShape = (shape, n_blocks) => {
 
 
 /**
- * This generates all shapes that are required to fill the elephant
+ * This generates all shapes that are required to fill the shape
  */
-export const generateElephantShape = (shape, pento_config, grid_config) => {
-    // set value ranges for random selection
-    const columns =			[...Array(grid_config.n_blocks).keys()];
-    const rows =				[...Array(grid_config.n_blocks).keys()];
-
+export const generateShape = (shape, pento_config) => {
     // generation parameters
-    const colors =			pento_config.get_pento_colors();
-    const pento_types =		pento_config.get_pento_types();
+    let shape_config = configPerShape(shape, pento_config.n_blocks)
+    const colors     = pento_config.get_pento_colors();
 
     let generated_shapes = 	[];
     let template_shapes = [];
 
-    for (let id=0; id<pento_types.length; id++) {
+    let id = 0
+    for (let pento_type in shape_config["coords"]) {
         let rand_color = colors[Math.floor(Math.random() * colors.length)];
         // while rand_color grey choose new color
-        while (pento_config.get_color_name(rand_color) == pento_config.templ_col) {
+        while (pento_config.get_color_name(rand_color) === pento_config.templ_col) {
             rand_color = colors[Math.floor(Math.random() * colors.length)];
         }
-
-        const pento_types =		pento_config.get_pento_types();
-        let pento_piece = pento_types[id]
-
-        let new_shape = createNewPentoPieceInShape(shape, grid_config, pento_piece, rand_color, id);
-        let new_template = createNewPentoPieceInShape(shape, grid_config, pento_piece, pento_config.get_hex_code(pento_config.templ_col), id);
+        // we postpone rotating the piece until later
+        let new_shape = createNewPentoPieceInShape(shape, pento_config, pento_type, rand_color, id,0);
+        let new_template = createNewPentoPieceInShape(shape, pento_config, pento_type, pento_config.get_hex_code(pento_config.templ_col), id,0);
         generated_shapes.push(new_shape.copy(id));
-        template_shapes.push(new_template.copy(generated_shapes.length + id));
+        template_shapes.push(new_template.copy(Object.keys(shape_config["coords"]).length + id));
+        id++;
     }
 
-
-    // now move, rotate, flip shape randomly to create initial board
-    create_initial_state(generated_shapes, ['rotate', 'move', 'flip'], grid_config);
-
+    create_initial_state(generated_shapes, ['rotate', 'move', 'flip'], pento_config);
+    // after all mirror operations have been executed we finally can rotate the piece
+    let j = 0;
+    while (j < generated_shapes.length) {
+        if (generated_shapes[j].type in shape_config["rotation"]) {
+            let angle = shape_config["rotation"][generated_shapes[j].type];
+            generated_shapes[j].rotate(angle);
+            template_shapes[j].rotate(angle);
+        }
+        j++;
+    }
     return [generated_shapes, template_shapes];
 };
 
-export const createNewPentoPieceInShape = (shape, grid_config, pento_piece, color, id) => {
-    const shape_config = configPerShape(shape, grid_config.n_blocks)
+
+export const createNewPentoPieceInShape = (shape, grid_config, pento_piece, color, id, rotation, is_mirrored) => {
+    const shape_config = configPerShape(shape, grid_config.n_blocks);
 
     // place on elephant board (predefined position)
     let eleX = shape_config["x"] + shape_config["coords"][pento_piece]['x'];
     let eleY = shape_config["y"] + shape_config["coords"][pento_piece]['y'];
     let coords = grid_cell_to_coordinates(eleX, eleY, grid_config.block_size);
 
-    //console.log({"id":id, "x": coords[0], "y": coords[1], "type": pento_types[id], "color": rand_color})
-    // create shape for the elephant board: without flip or rotation
-    let new_shape = pento_create_shape(id, coords[0], coords[1], pento_piece, color, false, 0, grid_config.block_size);
+    if (rotation === undefined && pento_piece in shape_config["rotation"]) {
+        rotation = shape_config["rotation"][pento_piece];
+    } else {
+        rotation = 0;
+    }
+    if (is_mirrored === undefined && pento_piece in shape_config["mirror"]) {
+        is_mirrored = shape_config["mirror"][pento_piece];
+    } else {
+        is_mirrored = false;
+    }
 
-    return new_shape.copy(id)
+    // create shape for the elephant board: without flip or rotation
+    let new_shape = pento_create_shape(id, coords[0], coords[1], pento_piece,
+                    color, is_mirrored, rotation, grid_config.block_size);
+    return new_shape.copy(id);
 }
 
 /**
@@ -111,7 +141,7 @@ const create_initial_state = (shapes, actions, grid_config) => {
         //this.pento_board_initial.place_shape(shape);
 
         // MOVE, ROTATE, FLIP
-        for (let action of ['move', 'rotate', 'flip']) {
+        for (let action of ['move', 'flip', 'rotate']) {
             if (!actions.includes(action)) {
                 console.log('PentoBoard does not support action ' + action);
             } else {

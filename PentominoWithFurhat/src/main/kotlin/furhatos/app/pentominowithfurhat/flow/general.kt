@@ -3,7 +3,7 @@
  * Contains general states as a foundation to be extended upon.
  *
  * Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
- * WiSe 20/21
+ * SoSe 21
  * Kotlin 1.3.70
  * Windows 10
  */
@@ -30,12 +30,18 @@ var UPTODATE = true
  * until furhat received an update on the game state.
  */
 fun sendWait(name: String) = state(GameRunning){
-
     onEntry {
         UPTODATE = false
+        var timeOut = 0
         send(name)
         while (!UPTODATE){
-            delay(50)
+            delay(100)
+            timeOut += 100
+            if (timeOut > 10000) {
+                println("Updating Information from web interface failed.")
+                println("Make sure to have opened the Pentomino Board.")
+                goto(Idle)
+            }
         }
         terminate()
     }
@@ -66,12 +72,20 @@ val Idle: State = state {
         // this does not raise an error even if 'proto' is missing
         furhat.setTexture("Proto")
 
+        // speech recognition phrases
+        furhat.setSpeechRecPhrases(listOf(
+            "furhat", "turn", "rotate", "spin", "tilt",
+            "whirl", "pivot", "swing", "twist",
+            "mirror", "reflect", "piece"
+        ))
+
         if (users.count > 0) {
             furhat.attend(users.random)
             goto(Greeting)
         }
     }
 
+    // define idle behaviour
     onTime(repeat=10000..15000) {
         furhat.gesture(
             listOf(lookDown(), GazeAway, LookAround).shuffled().take(1)[0],
@@ -111,18 +125,22 @@ val Idle: State = state {
 /**
  * Furhat manages user arrival and departure.
  *
- * Parent of: Explanation, GameFinished, GameRunning, Greeting, Start
+ * Parent of: Explanation, GameFinished, DemoFinished, GameRunning, Greeting, Start
  */
 val Interaction: State = state {
 
     onUserLeave(instant = true) {
+        // forget the leaving user
         it.saidNo = false
         it.played = false
         if (users.count > 0) {
+            // if furhat was talking to him,
+            // look for a new dialog partner
             if (it == users.current) {
                 furhat.attend(users.other)
                 goto(Greeting)
             } else {
+                // else just give him a short glance
                 furhat.glance(it)
             }
         } else {
@@ -131,6 +149,7 @@ val Interaction: State = state {
         }
     }
 
+    // inform newly arriving user about an ongoing game
     onUserEnter {
         val oldUser = users.current
         furhat.attend(it)
@@ -149,7 +168,7 @@ val Interaction: State = state {
 /**
  * Furhat stays in contact with the Web-UI.
  *
- * Parent of: GatherInformation, GetInformation, PieceSelected, SelectPiece, VerifyInformation
+ * Parent of: GatherInformation, PieceSelected, PlaceSelected, VerifyInformation
  */
 val GameRunning : State = state(Interaction) {
 
@@ -162,10 +181,11 @@ val GameRunning : State = state(Interaction) {
 
         users.current.left_state = latestGameData.left_board
         users.current.right_state = latestGameData.right_board
-        users.current.selected = latestGameData.selected
+        users.current.correctly_placed = latestGameData.correctly_placed
 
         // check game status to signal end of game if the case
         if (latestGameData.game.status in listOf("won","lost")) {
+            send("placeSelected")
             goto(GameFinished)
         }
         // select and remember new random element

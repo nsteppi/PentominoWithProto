@@ -3,7 +3,7 @@
  * Contains several custom gestures.
  *
  * Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
- * WiSe 20/21
+ * SoSe 21
  * Kotlin 1.3.70
  * Windows 10
  */
@@ -32,6 +32,7 @@ val LookAround = defineGesture("lookAround") {
     reset(6.5)
 }
 
+
 /** reset all parameters of the gestures used in Idle */
 val ReturnToNormal = defineGesture("ReturnToNormal") {
     frame(0.5) {
@@ -44,6 +45,7 @@ val ReturnToNormal = defineGesture("ReturnToNormal") {
     }
 }
 
+
 /** angle head to furhat's right accompanied with a slight smile */
 val EmpatheticSmile = defineGesture("EmpatheticSmile") {
     frame(0.5, 4.5) {
@@ -52,7 +54,6 @@ val EmpatheticSmile = defineGesture("EmpatheticSmile") {
     }
     reset(5.0)
 }
-
 
 /** custom function gestures */
 
@@ -72,6 +73,7 @@ fun awaitAnswer(strength: Double = 1.0, duration: Double = 1.0) =
         reset(0.7)
     }
 
+
 /**
  * push lips together and lift furhat's right brow
  * stronger alternative: awaitAnswer
@@ -88,6 +90,7 @@ fun questioning(strength: Double = 1.0, duration: Double = 1.0) =
         reset(0.7)
     }
 
+
 /** wide open-mouthed smile full of excitement */
 fun happy(strength: Double = 1.0, duration: Double = 1.0) =
     defineGesture("happy", strength, duration) {
@@ -101,6 +104,7 @@ fun happy(strength: Double = 1.0, duration: Double = 1.0) =
         }
         reset(1.0)
     }
+
 
 /** angle head to furhat's left, press lips together, narrow eyes and avoid eye contact */
 fun hurt(strength: Double = 1.0, duration: Double = 1.0) =
@@ -119,6 +123,7 @@ fun hurt(strength: Double = 1.0, duration: Double = 1.0) =
         reset(0.7)
     }
 
+
 /** bow head to the front and look down */
 fun lookDown(strength: Double = 1.0, duration: Double = 1.0) =
     defineGesture("lookDown", strength, duration) {
@@ -127,4 +132,14 @@ fun lookDown(strength: Double = 1.0, duration: Double = 1.0) =
             BasicParams.LOOK_DOWN to 10.0
         }
         reset(5.0)
+    }
+
+
+/** do not raise eyebrows, the mouth is slightly opened forming a crooked smile*/
+fun slightSmile(strength: Double = 1.0, duration: Double = 1.0) =
+    defineGesture("slightSmile", strength, duration) {
+        frame(0.4, 0.6) {
+            BasicParams.PHONE_R to 0.7
+        }
+        reset(1.0)
     }

@@ -1,0 +1,5 @@
+name: furhat
+channels:
+  - defaults
+dependencies:
+  - beautifulsoup4

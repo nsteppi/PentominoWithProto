@@ -279,8 +279,6 @@ export class Shape {
      * @param {value for cell} value
      */
     _set_grid_value(row, col, value) {
-        //console.log(this._internal_grid)
-        //console.log(row)
         this._internal_grid[row][col] = value;
     }
 

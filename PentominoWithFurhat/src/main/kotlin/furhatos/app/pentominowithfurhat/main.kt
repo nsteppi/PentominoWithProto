@@ -1,6 +1,6 @@
 /**
  * main.kt
- * Implements a user-robot dialog interaction in a pentomino game setting.
+ * Implements a user-robot dialog interaction in a Pentomino game setting.
  *
  * Kotlin 1.3.70
  */
