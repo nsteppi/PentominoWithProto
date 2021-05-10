@@ -136,7 +136,7 @@ class SharedKnowledge(response: Response<*>) {
                 "${this.position}"
     }
 
-    fun debug() {
+    private fun debug() {
         println("")
         println("Extracted Intents:")
         println("Exact Color: ${this.color?.color}")

@@ -154,7 +154,7 @@ val ShapeGrammarEn =
             +("block" / "open box" / "opened box" / "P" / "P-shaped" / "pea" / "pee" / "square") tag { "P" }
             +("candle" / "hammer" / "T" / "T-shaped" / "tea" / "tee" / "tower" / "tree") tag { "T" }
             +("bowl" / "box" / "bridge" / "C" / "C-shaped" / "cup" / "gate" / "U" / "U-shaped" / "you") tag { "U" }
-            +("angle" / "right angle" / "roof" / "tick" / "V" / "V-shaped") tag { "V" }
+            +("angle" / "right angle" / "roof" / "tick" / "V" / "V-shaped" / "boomerang") tag { "V" }
             +("stairs" / "steps" / "W" / "W-shaped") tag { "W" }
             +("cross" / "plus" / "star"/ "X" / "X-shaped") tag { "X" }
             +("hydrant" / "lego" / "pump" / "tap" / "water tap" / "why" / "Y" / "Y-shaped") tag { "Y" }

@@ -15,7 +15,11 @@ import furhatos.app.pentominowithfurhat.nlu.*
 import furhatos.event.Event
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures
+import furhatos.gestures.Gestures.Blink
 import furhatos.gestures.Gestures.BrowFrown
+import furhatos.gestures.Gestures.BrowRaise
+import furhatos.gestures.Gestures.Smile
+import furhatos.gestures.Gestures.Thoughtful
 import furhatos.nlu.common.DontKnow
 import furhatos.nlu.common.No
 import furhatos.nlu.common.Yes
@@ -33,21 +37,19 @@ val RIGHT_BOARD = Location(0.14, -0.36, 0.45)
 
 
 /**
- * Furhat collects information on the target piece the
- * user wants to select.
+ * Furhat collects and processes all information necessary
+ * to identify a target piece.
  *
- * Incoming Transitions from: Start, Explanation, GameFinished,
- *                            PieceSelected, VerifyInformation
- * Outgoing Transitions to: VerifyInformation, PieceSelected,
- *                          GatherInformation
+ * Incoming Transitions from: PieceSelected, PlaceSelected, GatherInformation, VerifyInformation
+ * Outgoing Transitions to: PieceSelected, GatherInformation, VerifyInformation
  *
- * Enter while: Attending User
- * Leave while: Attending User
+ * Enter while: Attend User
+ * Leave while: Attend LeftBoard
  */
 val GatherInformation : State = state(GameRunning) {
-
+    // only executed once per session
     init {
-        furhat.gesture(Gestures.Smile, async = false)
+        furhat.gesture(Smile, async = false)
         furhat.say {
             random {
                 +"Let's get started."
@@ -58,14 +60,19 @@ val GatherInformation : State = state(GameRunning) {
         delay(1000)
     }
 
+    // ask for an initial target description
     onEntry {
         furhat.glance(LEFT_BOARD)
+        // each Pentomino piece has a corresponding template shape template
+        // pieces always occupy the right board, in case we have as many
+        // pieces on the right as left, we are in the first game round
         if (users.current.correctly_placed.size == users.current.left_state.size) {
             furhat.ask(
                 "Which piece do you want to start with?",
                 endSil = 1250, timeout = 20000
             )
         } else {
+            // the last piece
             if (users.current.left_state.size == 1) {
                 furhat.say("Only one piece to go.")
                 send(
@@ -75,9 +82,12 @@ val GatherInformation : State = state(GameRunning) {
                 furhat.attend(LEFT_BOARD)
                 goto(PieceSelected)
             } else {
+                // half of all pieces are template pieces that are always
+                // correctly placed subtract that from all correctly placed
+                // pieces to obtain the number of successfully placed real pieces
                 val pieceN = (users.current.correctly_placed.size
                             - (users.current.correctly_placed.size
-                            + users.current.left_state.size)/ 2)
+                            + users.current.left_state.size)/ 2) + 1
                 furhat.ask({
                     random {
                         +"Which piece do you want to select?"
@@ -92,11 +102,15 @@ val GatherInformation : State = state(GameRunning) {
         }
     }
 
+    // reduce the initial set of candidates, if necessary by
+    // inquiring more information from the user
     onResponse {
+        // extract any detail on the piece
         users.current.roundKnowledge = SharedKnowledge(it)
+        // in case no useful information could be extracted
         if (users.current.roundKnowledge!!.isEmpty()) {
             furhat.gesture(
-                listOf(Gestures.Thoughtful, Gestures.BrowFrown, awaitAnswer(duration=5.0))
+                listOf(Thoughtful, BrowFrown, awaitAnswer(duration=5.0))
                     .shuffled().take(1)[0], async = false
             )
             furhat.ask({
@@ -111,7 +125,7 @@ val GatherInformation : State = state(GameRunning) {
         furhat.attend(LEFT_BOARD)
         // reset the list of candidates
         users.current.candidates = users.current.left_state.toMutableList()
-        // a first filtering based on the description
+        // a first filtering based on the initial description
         var ignoredInformation = users.current.roundKnowledge!!
             .findCandidates(users.current.candidates)
         // gather additional information until sufficient or lacking integrity
@@ -120,11 +134,14 @@ val GatherInformation : State = state(GameRunning) {
             ignoredInformation = users.current.roundKnowledge!!
                 .findCandidates(users.current.candidates)
         }
+        // with or without ignoring Information we got one candidate left
         if (users.current.candidates.size == 1) {
             send(
                 "selectPiece",
                 mapOf("piece" to users.current.candidates[0].name)
             )
+            // the single candidate does not match at least one detail of the description
+            // we select it anyway but inform the user about this deviation
             if (ignoredInformation) {
                 furhat.say("I could not find the ${users.current.roundKnowledge}.")
                 furhat.say(
@@ -135,8 +152,9 @@ val GatherInformation : State = state(GameRunning) {
             }
             goto(PieceSelected)
         } else {
+            // several candidates are left but our information do not add up
             furhat.attend(users.current)
-            furhat.gesture(Gestures.BrowFrown, async = false)
+            furhat.gesture(BrowFrown, async = false)
             furhat.say(
                 "I am sorry, but a ${users.current.roundKnowledge} does not exist.")
             delay(1000)
@@ -144,6 +162,8 @@ val GatherInformation : State = state(GameRunning) {
         }
     }
 
+    // suggest a piece to the user accompanied by a full description
+    // which can guide and prime the user
     onNoResponse {
         furhat.gesture(questioning(duration = 2.0), async = false)
         furhat.say {
@@ -168,13 +188,14 @@ val GatherInformation : State = state(GameRunning) {
 
 
 /**
- * Furhat checks for information integrity and ask for
- * additional information if necessary.
+ * We arrive at this state if additional information is necessary
+ * for an unambiguous piece selection. Before asking for it
+ * furhat verifies the information integrity.
  *
- * Incoming Transitions from: SelectPiece
- * Outgoing Transitions to: GatherInformation, GetInformation
+ * Incoming Transitions from: GatherInformation
+ * Outgoing Transitions to: GatherInformation
  *
- * Enter while: Attending Location
+ * Enter while: Attending LeftBoard
  * Leave while: Attending User
  */
 val VerifyInformation : State = state(GameRunning) {
@@ -184,12 +205,10 @@ val VerifyInformation : State = state(GameRunning) {
         furhat.say("Ok. I seem to be missing some information.")
         furhat.say("Here is, what I have:")
         furhat.glance(users.current)
-        furhat.say(
-            "We are looking for a ${users.current.roundKnowledge}."
-        )
+        furhat.say("We are looking for a ${users.current.roundKnowledge}.")
         furhat.attend(users.current)
+        // obtain answer to yes/no question within this single line
         val infoIncorrect = furhat.askYN("Any wrong information?")!!
-        println(infoIncorrect) //TODO: remove
         if (infoIncorrect) {
             raise("WrongInfo")
         } else {
@@ -197,30 +216,7 @@ val VerifyInformation : State = state(GameRunning) {
         }
     }
 
-    onEvent("WrongInfo") {
-        furhat.gesture(Gestures.BrowFrown)
-        furhat.glance(LEFT_BOARD)
-        furhat.say {
-            random {
-                +"Oh I am sorry!"
-                +"Sorry, I got confused."
-                +"Oh look! A butterfly!"
-            }
-        }
-        goto(GatherInformation)
-    }
-
-    onEvent("CorrectInfo") {
-        furhat.gesture(EmpatheticSmile)
-        val dp = users.current.roundKnowledge!!
-            .getDisambiguatingProperty(users.current.candidates)
-        furhat.ask({
-            random {
-                +"Please, tell me about the $dp of the piece!"
-                +"Try to explain the $dp of the piece."
-            }
-        }, endSil = 1250, timeout = 10000)
-    }
+    /** Responses */
 
     onResponse<Colors> {
         users.current.roundKnowledge!!.color = it.intent
@@ -237,6 +233,8 @@ val VerifyInformation : State = state(GameRunning) {
         users.current.roundKnowledge!!.shape = Shapes
             .getShape(it.findAll(Shapes()), it.text)
         if (users.current.roundKnowledge!!.shape == null) {
+            // if what was thought to be a shape was only a pronoun
+            // go down to the onResponse block
             propagate()
         }
         terminate()
@@ -246,17 +244,49 @@ val VerifyInformation : State = state(GameRunning) {
         furhat.say("Pardon?")
         raise("CorrectInfo")
     }
+
+    /** Events */
+
+    // discard any information that was collected so far and start anew
+    onEvent("WrongInfo") {
+        furhat.gesture(BrowFrown)
+        furhat.glance(LEFT_BOARD)
+        furhat.say {
+            random {
+                +"Oh I am sorry!"
+                +"Sorry, I got confused."
+                +"Oh look! A butterfly!"
+            }
+        }
+        goto(GatherInformation)
+    }
+
+    // ask the user to elaborate on the current target piece
+    onEvent("CorrectInfo") {
+        furhat.gesture(EmpatheticSmile)
+        // determine the attribute that can certainly help disambiguating
+        val dprop = users.current.roundKnowledge!!
+            .getDisambiguatingProperty(users.current.candidates)
+        furhat.ask({
+            random {
+                +"Please, tell me about the $dprop of the piece!"
+                +"Try to explain the $dprop of the piece."
+                +"Additional information on the $dprop could help me."
+            }
+        }, endSil = 1250, timeout = 10000)
+    }
 }
 
 
 /**
- * Furhat lets the user move the piece to the right board.
+ * Furhat verifies that the correct piece is selected
+ * and upon confirmation moves it to the right board.
  *
- * Incoming Transitions from: GatherInformation, PieceSelected, SelectPiece
- * Outgoing Transitions to: GetInformation, PieceSelected
+ * Incoming Transitions from: GatherInformation
+ * Outgoing Transitions to: GatherInformation, PlaceSelected
  *
- * Enter while: Attending Location
- * Leave while: Attending User
+ * Enter while: Attending LeftBoard
+ * Leave while: Attending User (-> GatherInformation), RightBoard(-> PlaceSelected)
  */
 val PieceSelected : State = state(GameRunning)  {
 
@@ -275,17 +305,18 @@ val PieceSelected : State = state(GameRunning)  {
         }
     }
 
+    // move a correctly selected piece to the left top corner of the right board
     onResponse<Yes> {
         furhat.attend(RIGHT_BOARD)
         call(sendWait("startPlacing"))
-        furhat.say {
-            + Gestures.BrowRaise
-            + Gestures.Smile
-        }
+        furhat.gesture(
+            listOf(BrowRaise, Smile).shuffled().take(1)[0]
+        )
         delay(500)
         goto(PlaceSelected)
     }
 
+    // deselect a incorrectly selected piece and go back to the selection process
     onResponse<No> {
         furhat.attend(users.current)
         send("deselectPiece")
@@ -312,11 +343,28 @@ val PieceSelected : State = state(GameRunning)  {
     }
 }
 
+
+/**
+ * Same signature as send() but allows to add additional logic.
+ */
 class Action(val text : String, val param : Map<String, Any> = mapOf()) : Event()
 
-// Enter while: Attending Right Board
+
+/**
+ * After the piece has been positioned in the left top corner,
+ * furhat can be instructed to move, rotate and mirror the piece,
+ * as well as give hints and reverse and repeat previous actions.
+ *
+ * Incoming Transitions from: PieceSelected, PlaceSelected
+ * Outgoing Transitions to: GatherInformation
+ *
+ * Enter while: Attending RightBoard
+ * Leave while: Attending User
+ */
 val PlaceSelected : State = state(GameRunning) {
+
     onEntry {
+        delay(1000)
         furhat.attend(users.current)
         furhat.ask ({
             random {
@@ -331,6 +379,15 @@ val PlaceSelected : State = state(GameRunning) {
         }, timeout = 20000)
     }
 
+    /** Responses */
+
+    // InterimResponses allow us to react faster to the user by parsing
+    // input as soon as it was given and potentially before it is complete
+    // But by applying them we risk that we react before all relevant information
+    // has been passed, obviously we could just use the Back intent to reverse a
+    // previous malformed action but this could confuse the user therefore we
+    // perform actions rotation and mirror that are fallible to this scenario
+    // only after the full response has been collected
     onInterimResponse {
         val interimIntent = it.classifyIntent()
         if (interimIntent != null) {
@@ -353,56 +410,84 @@ val PlaceSelected : State = state(GameRunning) {
     }
 
     onResponse<Move> {
-        println(it.speech.text)
         if (it.intent.dist != null) {
-            raise(Action("moveSelected", mapOf("dir" to it.intent.dir as String, "dist" to it.intent.dist as Int)))
+            raise(Action("moveSelected", mapOf("dir" to it.intent.dir as String,
+                                                   "dist" to it.intent.dist as Int)))
         } else {
             raise(Action("moveSelected", mapOf("dir" to it.intent.dir as String)))
         }
         furhat.listen(timeout = 20000)
     }
 
+    // stop any movement
     onResponse<Stop> {
         raise(Action("placeSelected"))
         furhat.listen(timeout = 20000)
     }
 
+    // repeat the previous action
     onResponse<Again> {
         if (users.current.prevAction != null) {
-            raise(Action(users.current.prevAction as String, users.current.prevParam as Map<String, Any>))
+            raise(Action(users.current.prevAction as String,
+                         users.current.prevParam as Map<String, Any>))
         }
         furhat.listen(timeout = 20000)
     }
 
+    // if a Stop intent was registered too late, the user might wish
+    // to perform the opposite of the previous action
     onResponse<Back> {
         if (users.current.prevAction != null) {
             val prevAction = users.current.prevAction!!
             val prevParam = users.current.prevParam!!
+            furhat.gesture(Thoughtful, async = false)
             when (prevAction) {
+                // get the opposite direction but keep the distance if it exists
                 "moveSelected" -> {
                     val counterDir = mapOf("up" to "down", "down" to "up",
                         "left" to "right", "right" to "left", "middle" to "middle")
                     val newValue = counterDir.getValue(prevParam.getValue("dir") as String)
+                    // middle has no unambiguous opposite action
                     if (newValue != "middle") {
-                        raise(Action(prevAction, mapOf("dir" to newValue)))
+                        if ("dist" in prevParam) {
+                            raise(Action(prevAction,
+                                         mapOf("dir" to newValue,
+                                               "dist" to prevParam["dist"]!!)))
+                        } else {
+                            raise(Action(prevAction, mapOf("dir" to newValue)))
+                        }
+                    } else {
+                        furhat.say("There is no going back.")
                     }
                 }
+                // a flip can be reversed by just performing it again
                 "flipSelected" -> {
                     raise(Action(prevAction, prevParam))
                 }
+                // take the opposite direction but keep the angle
                 "rotateSelected" -> {
                     val newValue = -1*prevParam.getValue("angle") as Int
                     raise(Action(prevAction, mapOf("angle" to newValue)))
                 }
+                // shouldn't be triggered for now
+                else -> {
+                    furhat.say("There is no going back.")
+                }
             }
         }
-        furhat.say("There is no going back.")
         furhat.listen(timeout = 20000)
     }
 
+    // If the user plays with a template this block may
+    // only help to find a goal position slightly faster.
+    // For the game without template a hint is essential, the
+    // better a user can remember the hinted at position the
+    // less hints they will need and the faster they can finish the game
     onResponse<DontKnow> {
         furhat.attend(users.current)
-        furhat.gesture(awaitAnswer(duration = 4.0), async = false)
+        furhat.gesture(Blink, async = false)
+        furhat.gesture(Blink, async = false)
+        delay(500)
         send("getHint")
         furhat.attend(RIGHT_BOARD)
         furhat.say {
@@ -419,9 +504,10 @@ val PlaceSelected : State = state(GameRunning) {
 
 
     onResponse {
-        // One day we might not need the below block
-        // but until grammar entities can decide on
-        // whether they are greedy or not, we need it
+        // One day we might not need the below block but until grammar
+        // entities can decide on whether they are greedy or not, we need it
+        // (would we add this rule to the grammar, more
+        // specific rules wouldn't be applied any longer)
         val regex = Regex(
             """\b((turn)|(rotate)""" +
                     """|(spin)|(tilt)""" +
@@ -434,7 +520,7 @@ val PlaceSelected : State = state(GameRunning) {
         } else {
             furhat.gesture(
                 listOf(
-                    awaitAnswer(duration = 5.0),
+                    awaitAnswer(duration = 5.0, strength = 0.8),
                     questioning(duration = 2.0),
                     BrowFrown
                 ).shuffled().take(1)[0]
@@ -451,14 +537,19 @@ val PlaceSelected : State = state(GameRunning) {
         furhat.listen(timeout = 20000)
     }
 
+    // hesitation is considered as a wish for guidance
     onNoResponse {
         raise(DontKnow())
     }
 
+    /** Events */
+
+    // the most recent movement event is remembered
     onEvent<Action>(instant = true) {
         furhat.attend(RIGHT_BOARD)
         if (it.param.isEmpty()) {
             send(it.text)
+            furhat.glance(users.current)
         } else {
             send(it.text, it.param)
             users.current.prevAction = it.text
@@ -466,7 +557,13 @@ val PlaceSelected : State = state(GameRunning) {
         }
     }
 
+    // this event is emitted once a shape could be anchored in its correct place
+    // the user is forced to return to the selection process
     onEvent("placementSuccessful") {
+        if (Math.random() < 0.3) {
+            furhat.gesture(slightSmile(), async = false)
+            delay(500)
+        }
         furhat.attend(users.current)
         furhat.stopSpeaking()
         furhat.say {
@@ -481,12 +578,7 @@ val PlaceSelected : State = state(GameRunning) {
                 +"Things are taking shape."
             }
         }
+        delay(500)
         goto(GatherInformation)
     }
 }
-
-
-//TODO: select one out of three candidates approaches to the placement
-// - "right right right right down down down ... stop
-// - "right some more go on more more (signal of continuation) stop
-// - "right ... ... ... stop

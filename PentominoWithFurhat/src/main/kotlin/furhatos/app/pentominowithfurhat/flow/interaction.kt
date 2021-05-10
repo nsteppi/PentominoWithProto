@@ -10,6 +10,7 @@
 
 package furhatos.app.pentominowithfurhat.flow
 
+import furhatos.app.pentominowithfurhat.nlu.Right
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures.BigSmile
 import furhatos.gestures.Gestures.Nod
@@ -87,6 +88,8 @@ val Start : State = state(Interaction) {
             async = false
         )
         call(sendWait(("startGame")))
+        // the user is only given an explanation
+        // if it's their first time playing
         users.current.saidNo = false
         if (users.current.played) {
             goto(GatherInformation)
@@ -96,6 +99,7 @@ val Start : State = state(Interaction) {
     }
 
     onResponse<No>{
+        // gently express disappointment
         furhat.gesture(hurt(duration=3.0))
         furhat.sigh()
         furhat.deflated("Too bad.")
@@ -130,18 +134,27 @@ val Explanation : State = state(Interaction) {
 
     onEntry {
         furhat.attend(LEFT_BOARD)
+        // read out description from file
         val textFile = javaClass.getClassLoader()
             .getResource("SimpleDescription")
             .readText(charset = Charsets.UTF_8).split("\n")
+
         textFile.forEachIndexed { i, line ->
-            if (i == 2) {
+            // attract attention to the template
+            if (i == 4) {
+                furhat.attend(RIGHT_BOARD)
+            }
+            // habitually glance to the user
+            if (i in listOf(2, 5)) {
                 furhat.glance(users.current, 2000)
             }
-            furhat.say(furhat.voice.prosody(line, rate=1.0))
+            furhat.say(furhat.voice.prosody(line, rate=0.9))
             delay(500)
         }
         furhat.attend(users.current)
         delay(1000)
+        // answering No here is the only chance for the user
+        // to hear the explanation again
         furhat.ask {
             +awaitAnswer(duration=3.0)
             +"Is everything clear?"
@@ -151,8 +164,8 @@ val Explanation : State = state(Interaction) {
     onResponse<Yes> {
         users.current.played = true
         furhat.gesture(Nod(duration = 0.8), async = false)
+        // before the real game starts we might wish to let the user perform a simple demo
         if (MODE == "Demo") {
-            // TODO; might require a simple gesture
             furhat.say("Ok. But let's go for a test run first.")
             furhat.say("Instead of an elephant we will build a simple square.")
             call(sendWait("startDemo"))
@@ -191,16 +204,11 @@ val GameFinished : State = state(Interaction) {
     onEntry {
         furhat.attend(users.current)
         furhat.glance(RIGHT_BOARD, 2000)
+        if (MODE == "Demo") {
+            goto(DemoFinished)
+        }
+        // the game is won
         if (users.current.right_state.isEmpty() && users.current.left_state.isEmpty()) {
-            if (MODE == "Demo") {
-                MODE = "Game"
-                furhat.say("I see you have understood the game.")
-                furhat.gesture(Wink)
-                furhat.say("Let's address the elephant in the room.")
-                delay(500)
-                call(sendWait("startGame"))
-                goto(GatherInformation)
-            }
             // wait for furhat to stop speaking
             while (furhat.isSpeaking()) {
                 delay(100)
@@ -221,21 +229,7 @@ val GameFinished : State = state(Interaction) {
                 }
             }
         } else {
-            if (MODE == "Demo") {
-                furhat.say("Oh no. We have run out of time.")
-                furhat.say("Here some hints that might help you.")
-                val textFile = javaClass.getClassLoader()
-                    .getResource("Hints")
-                    .readText(charset = Charsets.UTF_8).split("\n")
-                for (line in textFile) {
-                    furhat.say(furhat.voice.prosody(line, rate=0.9))
-                    delay(500)
-                }
-                furhat.gesture(awaitAnswer(duration = 3.0), async = false)
-                furhat.say("Let's try this again.")
-                call(sendWait("startDemo"))
-                goto(GatherInformation)
-            }
+            // the game is lost
             furhat.stopSpeaking()
             furhat.gesture(hurt(duration=3.0))
             furhat.sigh()
@@ -253,6 +247,7 @@ val GameFinished : State = state(Interaction) {
         furhat.ask("Want to play another round?")
     }
 
+    // restart game
     onResponse<Yes> {
         call(sendWait("startGame"))
         furhat.gesture(Wink, async = false)
@@ -261,6 +256,8 @@ val GameFinished : State = state(Interaction) {
     }
 
     onResponse<No> {
+        // remember user attitude to later prefer other users
+        // that might not have played the game yet
         users.current.saidNo = true
         furhat.gesture(lookDown(duration = 0.3), async = false)
         furhat.say("Ok. Thank you for your time.")
@@ -272,5 +269,53 @@ val GameFinished : State = state(Interaction) {
     onNoResponse {
         furhat.attendNobody()
         goto(Idle)
+    }
+}
+
+
+/**
+ * Furhat wraps up a demo that ended.
+ *
+ * Incoming Transitions from: GameFinished
+ * Outgoing Transitions to: GatherInformation
+ *
+ * Enter while: Attending User
+ * Leave while: Attending User
+ */
+val DemoFinished : State = state(Interaction) {
+
+    onEntry {
+        // the game is won
+        if (users.current.right_state.isEmpty() && users.current.left_state.isEmpty()) {
+            // necessary so once we win the real game we get the appropriate treatment
+            MODE = "Game"
+
+            furhat.say("I see you have understood the game.")
+            furhat.gesture(Wink)
+            furhat.say("Let's address the elephant in the room.")
+            delay(500)
+            // the user has to win the demo and then they can move on to the game
+            call(sendWait("startGame"))
+            goto(GatherInformation)
+
+        } else {
+            // the game is lost
+            // send the user back into another demo round
+            furhat.say("Oh no. We have run out of time.")
+            furhat.say("Here some hints that might help you.")
+            // read out additional hints
+            val textFile = javaClass.getClassLoader()
+                .getResource("Hints")
+                .readText(charset = Charsets.UTF_8).split("\n")
+
+            for (line in textFile) {
+                furhat.say(furhat.voice.prosody(line, rate=0.9))
+                delay(500)
+            }
+            furhat.gesture(awaitAnswer(duration = 3.0), async = false)
+            furhat.say("Let's try this again.")
+            call(sendWait("startDemo"))
+            goto(GatherInformation)
+        }
     }
 }

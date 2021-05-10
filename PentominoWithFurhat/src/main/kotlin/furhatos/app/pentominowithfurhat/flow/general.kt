@@ -3,7 +3,7 @@
  * Contains general states as a foundation to be extended upon.
  *
  * Wencke Liermann, Lisa Plagemann, Niklas Stepczynski
- * WiSe 20/21
+ * SoSe 21
  * Kotlin 1.3.70
  * Windows 10
  */
@@ -32,13 +32,14 @@ var UPTODATE = true
 fun sendWait(name: String) = state(GameRunning){
     onEntry {
         UPTODATE = false
-        var time_out = 0
+        var timeOut = 0
         send(name)
         while (!UPTODATE){
             delay(100)
-            time_out += 100
-            if (time_out > 10000) {
-                println("Updating Information from web interface failed")
+            timeOut += 100
+            if (timeOut > 10000) {
+                println("Updating Information from web interface failed.")
+                println("Make sure to have opened the Pentomino Board.")
                 goto(Idle)
             }
         }
@@ -84,6 +85,7 @@ val Idle: State = state {
         }
     }
 
+    // define idle behaviour
     onTime(repeat=10000..15000) {
         furhat.gesture(
             listOf(lookDown(), GazeAway, LookAround).shuffled().take(1)[0],
@@ -123,18 +125,22 @@ val Idle: State = state {
 /**
  * Furhat manages user arrival and departure.
  *
- * Parent of: Explanation, GameFinished, GameRunning, Greeting, Start
+ * Parent of: Explanation, GameFinished, DemoFinished, GameRunning, Greeting, Start
  */
 val Interaction: State = state {
 
     onUserLeave(instant = true) {
+        // forget the leaving user
         it.saidNo = false
         it.played = false
         if (users.count > 0) {
+            // if furhat was talking to him,
+            // look for a new dialog partner
             if (it == users.current) {
                 furhat.attend(users.other)
                 goto(Greeting)
             } else {
+                // else just give him a short glance
                 furhat.glance(it)
             }
         } else {
@@ -143,6 +149,7 @@ val Interaction: State = state {
         }
     }
 
+    // inform newly arriving user about an ongoing game
     onUserEnter {
         val oldUser = users.current
         furhat.attend(it)
@@ -161,7 +168,7 @@ val Interaction: State = state {
 /**
  * Furhat stays in contact with the Web-UI.
  *
- * Parent of: GatherInformation, GetInformation, PieceSelected, SelectPiece, VerifyInformation
+ * Parent of: GatherInformation, PieceSelected, PlaceSelected, VerifyInformation
  */
 val GameRunning : State = state(Interaction) {
 
