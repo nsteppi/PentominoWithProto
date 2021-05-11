@@ -302,6 +302,7 @@ val DemoFinished : State = state(Interaction) {
             // the game is lost
             // send the user back into another demo round
             furhat.say("Oh no. We have run out of time.")
+            furhat.gesture(hurt(strength = 0.6, duration = 0.7))
             furhat.say("Here some hints that might help you.")
             // read out additional hints
             val textFile = javaClass.getClassLoader()
@@ -312,6 +313,8 @@ val DemoFinished : State = state(Interaction) {
                 furhat.say(furhat.voice.prosody(line, rate=0.9))
                 delay(500)
             }
+            furhat.gesture(Smile(strength = 0.5, duration = 1.2))
+            delay(250)
             furhat.gesture(awaitAnswer(duration = 3.0), async = false)
             furhat.say("Let's try this again.")
             call(sendWait("startDemo"))
