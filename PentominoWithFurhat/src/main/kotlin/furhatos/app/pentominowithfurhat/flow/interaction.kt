@@ -140,9 +140,19 @@ val Explanation : State = state(Interaction) {
             .readText(charset = Charsets.UTF_8).split("\n")
 
         textFile.forEachIndexed { i, line ->
+            if (i == 2) {
+                send(
+                    "selectPiece",
+                    mapOf("piece" to users.current.rand_piece_name.toString())
+                )
+            }
             // attract attention to the template
             if (i == 4) {
+                send("startPlacing")
                 furhat.attend(RIGHT_BOARD)
+            }
+            if (i == 5) {
+                send("moveSelected", mapOf("dir" to "right"))
             }
             // habitually glance to the user
             if (i in listOf(2, 5)) {
@@ -169,6 +179,7 @@ val Explanation : State = state(Interaction) {
             furhat.say("Ok. But let's go for a test run first.")
             furhat.say("Instead of an elephant we will build a simple square.")
             call(sendWait("startDemo"))
+            furhat.gesture(EmpatheticSmile)
             furhat.say("And remember, you can always ask me for help.")
         } else {
             call(sendWait("startGame"))
@@ -292,8 +303,8 @@ val DemoFinished : State = state(Interaction) {
             MODE = "Game"
 
             furhat.say("I see you have understood the game.")
-            furhat.gesture(Wink)
             furhat.say("Let's address the elephant in the room.")
+            furhat.gesture(Wink)
             delay(500)
             // the user has to win the demo and then they can move on to the game
             call(sendWait("startGame"))

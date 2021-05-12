@@ -52,8 +52,8 @@ val GatherInformation : State = state(GameRunning) {
         furhat.say {
             random {
                 +"Let's get started."
-                +"Here we go."
-                +"Glad you found the time."
+                +"Ok. Here we go."
+                +"Glad you found the time to play."
             }
         }
         delay(1000)
@@ -110,7 +110,7 @@ val GatherInformation : State = state(GameRunning) {
                 +"No need to hesitate. Here, let me help you."
                 +"Don't take the game too serious. Let me show you how to do it."
                 +"You seem to be stuck. I will come to rescue."
-                +"Ok. Here my suggestion."
+                +"Ok. Here is my suggestion."
             }
         }
         furhat.attend(LEFT_BOARD)
@@ -493,12 +493,13 @@ val PlaceSelected : State = state(GameRunning) {
         furhat.attend(users.current)
         furhat.gesture(Blink, async = false)
         furhat.gesture(Blink, async = false)
+        furhat.gesture(EmpatheticSmile)
         delay(500)
         send("getHint")
         furhat.attend(RIGHT_BOARD)
         furhat.say {
             random {
-                +"You seem to be in desperate need of some hint. Here."
+                +"You seem to be in need of a hint. Here."
                 +"Let me help you. Here."
                 +"That's where the piece goes."
             }
