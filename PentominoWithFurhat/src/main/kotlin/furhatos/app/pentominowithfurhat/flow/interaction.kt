@@ -152,7 +152,7 @@ val Explanation : State = state(Interaction) {
                 furhat.attend(RIGHT_BOARD)
             }
             if (i == 5) {
-                send("moveSelected", mapOf("dir" to "right"))
+                send("moveSelected", mapOf("dir" to "right", "dist" to 5))
             }
             // habitually glance to the user
             if (i in listOf(2, 5)) {
