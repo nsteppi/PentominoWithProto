@@ -20,7 +20,6 @@ import furhatos.gestures.Gestures.BrowFrown
 import furhatos.gestures.Gestures.BrowRaise
 import furhatos.gestures.Gestures.Smile
 import furhatos.gestures.Gestures.Thoughtful
-import furhatos.nlu.common.DontKnow
 import furhatos.nlu.common.No
 import furhatos.nlu.common.Yes
 import furhatos.records.Location
@@ -102,6 +101,29 @@ val GatherInformation : State = state(GameRunning) {
         }
     }
 
+    // suggest a piece to the user accompanied by a full description
+    // which can guide and prime the user
+    onResponse<Help> {
+        furhat.gesture(questioning(duration = 2.0), async = false)
+        furhat.say {
+            random {
+                +"No need to hesitate. Here, let me help you."
+                +"Don't take the game too serious. Let me show you how to do it."
+                +"You seem to be stuck. I will come to rescue."
+                +"Ok. Here my suggestion."
+            }
+        }
+        furhat.attend(LEFT_BOARD)
+        send(
+            "selectPiece",
+            mapOf("piece" to users.current.rand_piece_name.toString())
+        )
+        furhat.say("This is the ${users.current.rand_piece_color} " +
+                "${users.current.rand_piece_type} piece " +
+                "${Positions.toString(users.current.rand_piece_loc)} of the field.")
+        goto(PieceSelected)
+    }
+
     // reduce the initial set of candidates, if necessary by
     // inquiring more information from the user
     onResponse {
@@ -165,24 +187,8 @@ val GatherInformation : State = state(GameRunning) {
     // suggest a piece to the user accompanied by a full description
     // which can guide and prime the user
     onNoResponse {
-        furhat.gesture(questioning(duration = 2.0), async = false)
-        furhat.say {
-            random {
-                +"No need to hesitate. Here, let me help you."
-                +"Don't take the game too serious. Let me show you how to do it."
-                +"Wow, that was an awkward pause."
-                +"You seem to be stuck. I will come to rescue."
-            }
-        }
-        furhat.attend(LEFT_BOARD)
-        send(
-            "selectPiece",
-            mapOf("piece" to users.current.rand_piece_name.toString())
-        )
-        furhat.say("This is the ${users.current.rand_piece_color} " +
-            "${users.current.rand_piece_type} piece " +
-            "${Positions.toString(users.current.rand_piece_loc)} of the field.")
-        goto(PieceSelected)
+        furhat.say("Wow, that was an awkward pause.")
+        raise(Help())
     }
 }
 
@@ -483,7 +489,7 @@ val PlaceSelected : State = state(GameRunning) {
     // For the game without template a hint is essential, the
     // better a user can remember the hinted at position the
     // less hints they will need and the faster they can finish the game
-    onResponse<DontKnow> {
+    onResponse<Help> {
         furhat.attend(users.current)
         furhat.gesture(Blink, async = false)
         furhat.gesture(Blink, async = false)
@@ -539,7 +545,7 @@ val PlaceSelected : State = state(GameRunning) {
 
     // hesitation is considered as a wish for guidance
     onNoResponse {
-        raise(DontKnow())
+        raise(Help())
     }
 
     /** Events */

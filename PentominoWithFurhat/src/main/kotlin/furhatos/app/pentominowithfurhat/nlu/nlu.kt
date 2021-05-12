@@ -20,6 +20,21 @@ import furhatos.nlu.kotlin.grammar
 import furhatos.util.Language
 
 
+/** Recognize a user's wish for guidance */
+class Help : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("help", "confused", "unsure", "I am lost", "I don't know",
+            "I do not know", "I am stuck", "I can't", "I don't see", "not sure",
+            "tell me")
+    }
+
+    override fun getNegativeExamples(lang: Language?): List<String> {
+        return listOf("but", "though")
+    }
+}
+
+
+
 /**
  * Each exact [color] is seen as a member of a [colorSuper] set,
  * where it is grouped with similar looking colors.

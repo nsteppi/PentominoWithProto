@@ -169,6 +169,7 @@ val Explanation : State = state(Interaction) {
             furhat.say("Ok. But let's go for a test run first.")
             furhat.say("Instead of an elephant we will build a simple square.")
             call(sendWait("startDemo"))
+            furhat.say("And remember, you can ask me for help any time.")
         } else {
             call(sendWait("startGame"))
         }
