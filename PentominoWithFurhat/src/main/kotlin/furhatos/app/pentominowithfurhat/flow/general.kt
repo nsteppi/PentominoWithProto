@@ -51,7 +51,7 @@ fun sendWait(name: String) = state(GameRunning){
 /**
  * Furhat waits for a user.
  *
- * Incoming Transitions from: GameFinished, Greeting, Start
+ * Incoming Transitions from: Interaction, GameFinished, Greeting, Start
  * Outgoing Transitions to: Greeting, Start
  *
  * Enter while: Attending Nobody

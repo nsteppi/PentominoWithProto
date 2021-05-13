@@ -39,7 +39,7 @@ val RIGHT_BOARD = Location(0.14, -0.36, 0.45)
  * Furhat collects and processes all information necessary
  * to identify a target piece.
  *
- * Incoming Transitions from: PieceSelected, PlaceSelected, GatherInformation, VerifyInformation
+ * Incoming Transitions from: Explanation, PieceSelected, PlaceSelected, GatherInformation, VerifyInformation, Start
  * Outgoing Transitions to: PieceSelected, GatherInformation, VerifyInformation
  *
  * Enter while: Attend User

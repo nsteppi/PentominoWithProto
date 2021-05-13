@@ -10,7 +10,6 @@
 
 package furhatos.app.pentominowithfurhat.flow
 
-import furhatos.app.pentominowithfurhat.nlu.Right
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures.BigSmile
 import furhatos.gestures.Gestures.Nod
@@ -24,7 +23,7 @@ var MODE = "Demo"
 
 
 /**
- * Furhat tries to attract a users attention.
+ * Furhat tries to attract a user's attention.
  *
  * Incoming Transitions from: Idle, Interaction
  * Outgoing Transitions to: Idle, Start
@@ -63,7 +62,7 @@ val Greeting : State = state(Interaction) {
  * Furhat invites the user to play a game.
  *
  * Incoming Transitions from: Idle, Greeting
- * Outgoing Transitions to: Idle, Explanation
+ * Outgoing Transitions to: Idle, Explanation, GatherInformation
  *
  * Enter while: Attending User
  * Leave while: Attending User or Nobody(-> Idle)
@@ -305,7 +304,7 @@ val DemoFinished : State = state(Interaction) {
             furhat.say("I see you have understood the game.")
             furhat.say("Let's address the elephant in the room.")
             furhat.gesture(Wink)
-            delay(500)
+            delay(900)
             // the user has to win the demo and then they can move on to the game
             call(sendWait("startGame"))
             goto(GatherInformation)
