@@ -20,6 +20,17 @@ import furhatos.nlu.kotlin.grammar
 import furhatos.util.Language
 
 
+/** Recognize a user's wish for guidance */
+class Help : EnumEntity() {
+    override fun getEnum(lang: Language): List<String> {
+        return listOf("help", "confused", "unsure", "I am lost", "I don't know",
+            "I do not know", "I am stuck", "I can't", "I don't see", "not sure",
+            "tell me", "don't know", "do not know", "where does", "I cannot")
+    }
+}
+
+
+
 /**
  * Each exact [color] is seen as a member of a [colorSuper] set,
  * where it is grouped with similar looking colors.
@@ -566,12 +577,12 @@ val RotationGrammarEn =
     rule("general", public = false) {
         choice {
             group {
-                +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
+                +("turn" / "rotate" / "rotated" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
                 -("a" / "the" / "this" / "that")
                 -("piece" / "peace" / "figure" / "it" / "object" / "rotation" / "at")
             }
             group {
-                +("turn" / "rotate" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
+                +("turn" / "rotate" / "rotated" / "spin" / "tilt" / "whirl" / "pivot" / "swing" / "twist" / "perform")
                 -("a" / "the" / "this" / "that")
                 entity<Shapes>()
             }
@@ -584,7 +595,7 @@ val RotationGrammarEn =
             -"a"
             choice {
                 +("quarter" / "90" / "90°" / "ninety" / "one-fourth" / "quadrant" / "1/4") tag { 90 }
-                +("around" / "180" / "180°" / "half" / "upside-down" / "one hundred and eighty" / "1/2") tag { 180 }
+                +("around" / "180" / "180°" / "half" / "upside down" / "one hundred and eighty" / "1/2") tag { 180 }
                 +("270" / "270°" /"two hundred and seventy" / "three quarter" / "3/4") tag { 270 }
             }
             -"degrees"
@@ -632,13 +643,15 @@ val MirrorGrammarEn =
             +("mirror" / "reflect" / "flip") tag { Mirror() }
         }
 
-        /** e.g. I want you to flip the piece on the vertical axis. */
+        /** e.g. I want you to flip the piece horizontally. */
         rule(public = true){
             group {
                 +("mirror" / "reflect" / "flip")
                 -"on"
                 -("a" / "the" / "this" / "that" / "a")
-                -("piece" / "peace"/ "figure" / "it" / "object" / "rotation")
+                -("piece" / "peace"/ "figure" / "it" / "object")
+                -"on"
+                -"the"
                 choice {
                     +("horizontally" / "horizontal") tag { Mirror(axis="horizontal") }
                     +("vertically" / "vertical") tag { Mirror(axis="vertical") }
@@ -646,28 +659,3 @@ val MirrorGrammarEn =
             }
         }
     }
-
-
-/**
-Context: One person has to complete a 16-piece puzzle while blindfolded.
-Another person describes where to get and put pieces.
-Source: https://www.youtube.com/watch?v=a5WCgpKO4cQ 3:47
-No, no, no, no. Top. Top right.
-Around, around, around, around...
-And you go all the way straight, straight all the way up.
-Right in front of you. All the way front, all the way front. No no keep going. Keep going.
-Turn, turn, turn. Place it down.
-Go up. Go up. One more. Right there.
-Take that one. One more down. One more that way. One more. Right there. Perfect.
-Flip. Flip. Flip. Flip. Flip. Right.
-
-Context: People have to walk through a field blindfolded and throw balls at objects.
-Source: https://www.youtube.com/watch?v=a5WCgpKO4cQ 6:15
-...
-You have to go a little more to the right.
-...
-Ok, go. Right, right.
-...
-Still, too much to the right.
-Go, go. Straight.
-*/

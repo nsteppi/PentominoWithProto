@@ -690,7 +690,7 @@ const App = () => {
     ).sort().map(element => {
       return <button
               id={"pento_" + element.type}
-              style={{ visibility: gameState.correctly_placed.find(shape => shape.name == element.name) ? 'hidden':'visible'}}
+              style={{ visibility: gameState.correctly_placed.find(shape => shape.name == element.name) ? 'hidden':'hidden'}}
               onClick={() => {selectPentoPiece(element.name);}}>
                 {pento_config.get_color_name(element.color)} {element.type}
             </button>
