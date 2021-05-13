@@ -144,7 +144,7 @@ Every time you change something here, you have to rerun `npm run build`. However
 a Pentomino board.
 
 ## Authors
-Wencke Liermann*, Lisa Plagemann+, Niklas Stepczynski*
+Wencke Liermann*, Lisa Plagemann+, Niklas Stepczynski*  
 University of Potsdam  
 *Computational Linguistics 6. Semester  
 +Computational Linguistics 4. Semester  
