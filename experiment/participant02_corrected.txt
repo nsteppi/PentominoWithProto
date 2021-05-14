@@ -1,0 +1,250 @@
+Furhat:How are you doing?
+User:I'm doing fine
+Furhat:Do you want to play a game?
+User:yes please
+Furhat:This Game is called Pentomino.
+Furhat:The goal of the game is to build a shape out of the pieces you see on the left.
+Furhat:Please describe the pieces one at the time.
+Furhat:You can refer to the piece's color, position on the grid or by comparing the shape to a letter.
+Furhat:We need to move each piece to the correct position in the shape.
+Furhat:To move a piece, specify the direction and tell me when to stop.
+Furhat:You might have to rotate or mirror the pieces to make them fit.
+Furhat:Is everything clear?
+User:yes everything is clear
+Furhat:Ok. But let's go for a test run first.
+Furhat:Instead of an elephant we will build a simple square.
+Furhat:And remember, you can always ask me for help.
+Furhat:Ok. Here we go.
+Furhat:Which piece do you want to start with?
+User:the red piece
+Furhat:Do you want to place the selected piece?
+User:yes I want to
+Furhat:Where does this piece go?
+User:to the right
+User:more
+Furhat:Wait, what?
+User:down down down
+User:stop it
+User:can you turn the piece to the left
+User:now move it to the left
+User:two blocks stop stop
+User:no move it back one block
+User:stop
+User:two blocks to the left
+Furhat:Things are taking shape.
+Furhat:Please describe another piece.
+User:take the blue piece
+Furhat:Should we play this piece?
+User:yes please
+Furhat:Where to?
+User:to the right
+User:right
+User:right stop
+User:stop
+User:down
+User:left left left
+User:stop
+User:can you mirror the piece
+User:rotate the piece 180 degrees
+Furhat:We are making progress.
+Furhat:Only one piece to go.
+Furhat:Do you want to place the selected piece?
+User:yes please
+Furhat:Where does this piece go?
+User:turn the piece to the left
+User:no go back
+User:turn the piece to the right
+User:no stop
+User:turn the piece to the right
+User:no stop
+User:turn piece to the right
+User:now move it down
+User:to the left
+User:stop
+Furhat:I see you have understood the game.
+Furhat:Let's address the elephant in the room.
+Furhat:Which piece do you want to start with?
+User:we start with the orange piece that is really long like the eye shape
+Furhat:I will place this piece, okay?
+User:okay
+Furhat:Where does this piece go?
+User:I don't know
+Furhat:That's where the piece goes.
+Furhat:Where do you want me to move the piece?
+User:down
+User:down down
+Furhat:Again, please.
+User:right
+User:stop
+User:one more block to the top
+Furhat:Great.
+Furhat:Please describe another piece.
+User:can you take the turquoise L shape
+Furhat:Let's go with this one, okay?
+User:okay
+Furhat:Where to?
+User:down
+User:right right right right
+User:stop
+User:turn the piece to the right
+User:no stop
+User:rotate the piece to the right
+User:down
+Furhat:Again, please.
+User:two blocks down
+User:stop
+User:can you mirror the piece
+Furhat:Pardon?
+User:can you mirror the piece
+Furhat:Sorry?
+User:mirror the piece vertically
+Furhat:Pardon?
+User:mirror the piece vertically
+User:okay two more blocks to the left
+User:stop
+User:stop
+User:too much
+User:no.
+Furhat:Pardon?
+User:stop
+User:no, stop
+User:stop
+User:to the right
+User:stop
+Furhat:Great.
+Furhat:Please describe a piece to me!
+User:the next piece is the yellow Z-shape
+Furhat:I will place this piece, okay?
+User:okay
+Furhat:Where does this piece go?
+User:rotate the piece to the right
+User:now move it down
+User:now move it to the right
+User:now stop
+Furhat:Things are taking shape.
+Furhat:Elaborate on another piece, please.
+User:take the light green piece at the top of the board on the right side
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a piece at the top right.
+Furhat:Any wrong information?
+User:no
+Furhat:Additional information on the color could help me.
+User:the color is light green
+Furhat:Should we play this piece?
+User:yes
+Furhat:Where do you want me to move the piece?
+User:turn the piece to the left
+User:now move it down
+User:now move to the right
+User:and stop
+User:one block down
+User:one block to the right
+Furhat:Well done!
+Furhat:Elaborate on another piece, please.
+User:take the light green X-shape
+Furhat:Let's go with this one, okay?
+User:okay
+Furhat:Can you tell me where to move the piece?
+User:three spaces to the right
+User:no stop
+User:drop it
+User:3 blocks
+Furhat:Wait, what?
+User:stop stop stop
+User:to the left
+User:up up
+User:stop
+Furhat:Yes. That's it.
+Furhat:We already made it to piece number 6. What's next?
+User:take the pink T shape
+Furhat:Is this a good choice?
+User:yes
+Furhat:Where does this piece go?
+User:turn the piece to the right
+User:now move it to the right
+User:now move it down
+User:now stop
+Furhat:This game is so fun.
+Furhat:New description, please!
+User:take the dar green piece
+Furhat:I didn't get it. Which piece did you talk about?
+User:the dark green piece on the right bottom of the box
+Furhat:Do you want to place the selected piece?
+User:yes please
+Furhat:Where do you want me to move the piece?
+User:I want you to move the piece down
+User:like really far down
+User:now move it to the right
+User:to the right
+User:three more blocks
+User:no, back back back
+Furhat:Wait, what?
+User:to the right
+User:now up
+Furhat:Sorry?
+User:up, up, stop
+User:to the left
+User:stop
+User:one block up
+User:one block to the left
+Furhat:Well done!
+Furhat:We already made it to piece number 8. What's next?
+User:please take the orange piece at the top
+Furhat:Let's go with this one, okay?
+User:okay
+Furhat:Where does this piece go?
+User:turn it to the left
+User:90 degrees stop
+User:turn it to the left
+User:turn it to the right
+User:right
+User:stop
+User:turn the piece to the left
+User:okay now move it down
+User:stop
+Furhat:Great.
+Furhat:New description, please!
+User:take the light blue W
+Furhat:Is this a good choice?
+User:yes
+Furhat:Can you tell me where to move the piece?
+User:to the right
+User:drop it down
+User:stop it
+Furhat:Good job!
+Furhat:Elaborate on another piece, please.
+User:take the pink C shape piece
+Furhat:Let's go with this one, okay?
+User:okay
+Furhat:Where does this piece go?
+User:three blocks down
+User:one block to the right
+Furhat:Well done!
+Furhat:We already made it to piece number 11. What's next?
+User:take the blue piece
+Furhat:Is this a good choice?
+User:yes that is a good choice
+Furhat:Where to?
+User:down
+User:down down down
+User:right
+User:right right right
+User:stop
+Furhat:Well done!
+Furhat:Only one piece to go.
+Furhat:Let's go with this one, okay?
+User:okay
+Furhat:Where does this piece go?
+User:down down down
+User:down
+Furhat:Sorry?
+User:stop
+User:180 degrees to the right
+User:stop
+User:mirror the piece vertically
+Furhat:Good job!
+Furhat:Want to play another round?
+User:no I'm not allowed to
+Furhat:Ok. Thank you for your time.
+Furhat:Bye bye!
