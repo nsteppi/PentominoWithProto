@@ -1,0 +1,262 @@
+Furhat:Thanks for visiting me in my laboratory.
+User:hello
+Furhat:Do you want to play a game?
+User:yes
+Furhat:This Game is called Pentomino.
+Furhat:The goal of the game is to build a shape out of the pieces you see on the left.
+Furhat:Please describe the pieces one at the time.
+Furhat:You can refer to the piece's color, position on the grid or by comparing the shape to a letter.
+Furhat:We need to move each piece to the correct position in the shape.
+Furhat:To move a piece, specify the direction and tell me when to stop.
+Furhat:You might have to rotate or mirror the pieces to make them fit.
+Furhat:Is everything clear?
+User:yes
+Furhat:Ok. But let's go for a test run first.
+Furhat:Instead of an elephant we will build a simple square.
+Furhat:And remember, you can always ask me for help.
+Furhat:Ok. Here we go.
+Furhat:Which piece do you want to start with?
+User:please pick up the yellow piece at the bottom right corner
+Furhat:Do you want to place the selected piece?
+User:yes
+Furhat:Can you tell me where to move the piece?
+User:please rotate it to the right
+User:please wrote it to the right again
+User:stop
+User:move it down
+User:stop
+User:move it up
+User:stop
+User:move it up
+User:stop
+User:move it town
+Furhat:Pardon?
+User:move it down
+User:stop
+User:rotate it two times
+User:rotate it another time
+User:move it to the left
+User:stop
+User:move it to the right
+User:stop
+User:stop
+User:move it to the left
+Furhat:Great.
+Furhat:We already made it to piece number 2. What's next?
+User:please pick up the greenpeace
+Furhat:Wait, what?
+User:the green the greenpeace
+Furhat:Wait, what?
+User: the greenpeace
+Furhat:Pardon?
+User:please pick up the yellow piece
+Furhat:Should we play this piece?
+User:yes
+Furhat:Where does the piece belong?
+User:move it to the right
+User:stop
+User:move two down
+User:move it down
+User:stop
+Furhat:This game is so fun.
+Furhat:Only one piece to go.
+Furhat:Should we play this piece?
+User:yes
+Furhat:Where does the piece belong?
+User:rotate it
+User:rotate it 
+User:rotate it
+User:rotate it
+User:flip it
+User:move in town
+User:move town
+User:move in town
+User:move it to the right
+User:stop
+User:move it down
+User:stop
+User:turn it upside down
+User:stop
+User:rotate it
+User:rotate it
+User:move it down
+User:stop
+Furhat:Good job!
+Furhat:I see you have understood the game.
+Furhat:Let's address the elephant in the room.
+Furhat:Which piece do you want to start with?
+User:please pick up the greenpeace at the upper left corner
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a piece at the top left
+Furhat:Any wrong Informations?
+User:no
+Furhat:Additional information on the position could help me.
+User:it fills five squares
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a piece at the top left
+Furhat:Any wrong Informations?
+User:lets try another shape or piece
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a piece at the top left
+Furhat:Any wrong Informations?
+User:yes
+Furhat:Oh I am sorry!
+Furhat:Elaborate on another piece, please.
+User:pick up the light green piece
+Furhat:Could this be a fitting piece?
+User:yes
+Furhat:Where to?
+User:move down
+User:stop
+User:move it to the right
+User:stop
+Furhat:We are making progress.
+Furhat:Elaborate on another piece, please.
+User:please pick up the piece at the bottom left corner
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a piece at the bottom left
+Furhat:Any wrong Informations?
+User:no
+Furhat:Additional information on the shape could help me.
+User:blue
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a blue piece at the bottom left
+Furhat:Any wrong Informations?
+User:yes
+Furhat:Oh I am sorry!
+Furhat:Elaborate on another piece, please.
+User:pick up the brown piece
+Furhat:Should we place this piece?
+User:yes
+Furhat:How should I move it?
+User:rotate it
+User:rotate it
+User:flip it
+User:rotate it
+User:rotate it
+User:right
+User:stop
+User:town
+User:down
+User:stop
+Furhat:This game is so fun.
+Furhat:Please describe another piece.
+User:next pick up the t shaped piece
+Furhat:Let's go with this one,okay?
+User:yes
+Furhat:Where does this piece go?
+User:rotate it
+User:rotate
+User:rotate
+User:right
+User:stop
+User:down
+User:down
+User:stop
+User:up
+User:stop
+Furhat:This game is so fun.
+Furhat:We already made it to piece number 4. What's next?
+User:the yellow piece
+Furhat:Should we place this piece?
+User:yes
+Furhat:Where does the piece belong?
+User:rotate
+User:down
+User:stop
+User:right
+User:stop
+Furhat:This game is so fun.
+Furhat:Which piece do you want to select?
+User:please pick up the pink piece
+Furhat:Do you want to place the selected piece?
+User:yes
+Furhat:Where do you want me to move the piece?
+User:move it down
+User:stop
+User:right
+User:stop
+User:left
+User:right stop
+Furhat:Great.
+Furhat:New description, please!
+User:please pick up the violet piece
+Furhat:Do you want to place the selected piece?
+User:yes
+Furhat:Where do you want me to move the piece?
+User:town
+Furhat:Pardon?
+User:down
+User:stop
+User:right
+User:stop
+Furhat:Well done!
+Furhat:We already made it to piece number 7. What's next?
+User:the orange piece
+Furhat:Do you want to place the selected piece?
+User:yes
+Furhat:Where do you want me to move the piece?
+User:rotate
+User:rotate
+User:rotate
+User:right
+User:stop
+User:Town
+Furhat:Wait, what?
+User:down
+User:stop
+Furhat:Great.
+Furhat:New description, please!
+User:please pick up the piece at the bottom left
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a piece at the bottom left
+Furhat:Any wrong Informations?
+User:no
+Furhat:Additional information on the shape could help me.
+User:it is bright blue
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a blue piece at the bottom left
+Furhat:Any wrong Informations?
+User:yes
+Furhat:Oh I am sorry!
+Furhat:Elaborate on another piece, please.
+User:excuse me pick up the dark green piece
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a dark green piece 
+Furhat:Any wrong Informations?
+User:no
+Furhat:Additional information on the shape could help me.
+User:it looks like a C
+Furhat:Do you want to place the selected piece?
+User:yes
+Furhat:Where do you want me to move the piece?
+User:move it town
+Furhat:Pardon?
+User:town
+Furhat:Pardon?
+User:town
+Furhat:Wait, what?
+User:down
+User:right
+User:stop
+User:right
+User:stop
+User:left
+User:stop
+User:left
+User:stop
+User:right
+Furhat:hou...
+Furhat:The poor elephant!
+Furhat:Want to play another round?
+User:no
+Furhat:Ok. Thank you for your time.
+Furhat:Bye bye!

@@ -1,0 +1,248 @@
+Furhat:Welcome!
+User:hi
+Furhat:Do you want to play a game?
+User:yes
+Furhat:This Game is called Pentomino.
+Furhat:The goal of the game is to build a shape out of the pieces you see on the left.
+Furhat:Please describe the pieces one at the time.
+Furhat:You can refer to the piece's color, position on the grid or by comparing the shape to a letter.
+Furhat:We need to move each piece to the correct position in the shape.
+Furhat:To move a piece, specify the direction and tell me when to stop.
+Furhat:You might have to rotate or mirror the pieces to make them fit.
+Furhat:Is everything clear?
+User:Ja [german]
+Furhat:Ok. But let's go for a test run first.
+Furhat:Instead of an elephant we will build a simple square.
+Furhat:And remember, you can always ask me for help.
+Furhat:Let's get started.
+Furhat:Which piece do you want to start with?
+User:the L shaped piece
+Furhat:Sorry. I didn't understand. What piece?
+User:the L shaped piece
+Furhat:I am sorry, but a L piece does not exist.
+Furhat:Which piece do you want to start with?
+User:the C shaped piece
+Furhat:I am having trouble understanding. Please try again!
+User:I want to start with the C shaped piece
+Furhat:Do you want to place the selected piece?
+User:yes
+Furhat:Where should I move it?
+User:turn it around
+User:move down
+User:stop
+User:move right
+User:stop
+User:turn
+User:turn
+User:move right
+User:stop
+User:move left
+User:turn
+User:turn
+User:move left
+User:stop
+Furhat:Yes. That's it.
+Furhat:We already made it to piece number 2. What's next?
+User:the blue one
+Furhat:This one?
+User:yes
+Furhat:Where does the piece belong?
+User:move right
+User:stop
+User:turn
+User:turn
+User:turn
+User:mirror mirror
+Furhat:Pardon?
+User:mirror
+User:turn
+User:move down
+User:stop
+User:move one up
+User:stop
+User:move left
+User:äh [german] stopp
+User:move to right
+Furhat:Again, please.
+User:move right
+User:stop
+Furhat:Things are taking shape.
+Furhat:Only one piece to go.
+Furhat:Is this a good choice?
+User:yes
+Furhat:Can you tell me where to move the piece?
+User:first move down
+User:stop
+User:move right
+User:stop
+User:turn
+User:turn
+User:move up
+User:stop
+User:move left
+User:stop
+User:move right
+User:stop
+Furhat:Well done!
+Furhat:I see you have understood the game.
+Furhat:Let's address the elephant in the room.
+Furhat:Which piece do you want to start with?
+User:the I the line
+Furhat:I didn't get it. Which piece did you talk about?
+User:the long one
+Furhat:Should we play this piece?
+User:yes
+Furhat:Where to?
+User:move right
+User:stop stop
+User:move down
+User:stop
+User:move left
+User:stop
+Furhat:Things are taking shape.
+Furhat:Which piece do you want to select?
+User:the t-shaped one
+Furhat:Do you want to place the selected piece?
+User: Yes [noisy]
+Furhat:Sorry, I didn't hear you
+Furhat:Do you want to place the selected piece?
+User:yes
+Furhat:Where do you want me to move the piece?
+User:I want to take another piece
+Furhat:Pardon?
+User:I want to take a different piece
+Furhat:Wait, what?
+User:I want to take the L-shaped piece instead
+Furhat:Sorry?
+User:okay then
+Furhat:Again, please.
+User:move down
+User:stop
+User:mirror it
+Furhat:Wait, what?
+User:mirror
+User:move right
+User:stop
+Furhat:Yes. That's it.
+Furhat:Which piece do you want to select?
+User:but L shaped piece
+Furhat:I will place this piece, okay?
+User:yes
+Furhat:Where to?
+User:move right
+User:stop
+User:turn two times
+User:move down
+User:stop
+User:move right stop
+Furhat:Sorry?
+User:move one right
+Furhat:Yes. That's it.
+Furhat:Which piece do you want to select?
+User:the Plus
+Furhat:Could this be a fitting piece?
+User:yes
+Furhat:Where does this piece go?
+User:move right
+User:stop
+User:move left
+User:stop
+User:move down
+User:stop
+Furhat:Things are taking shape.
+Furhat:Please describe another piece.
+User:the C shaped piece
+Furhat:Could this be a fitting piece?
+User:yes
+Furhat:Where does this piece go?
+User:one right
+User:and three down
+Furhat:Things are taking shape.
+Furhat:Elaborate on another piece, please.
+User:the zigzag shaped one
+Furhat:I am having trouble understanding. Please try again!
+User:the orange one
+Furhat:Should we play this piece?
+User:yes
+Furhat:Where does the piece belong?
+User:move down
+User:stop
+User:move right
+User:stop
+User:move to left
+User:stop
+User:move right
+User:stop
+Furhat:We are making progress.
+Furhat:We already made it to piece number 7. What's next?
+User:the corner the brown corner
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a beige piece .
+Furhat:Any wrong information?
+User:no
+Furhat:Additional information on the shape could help me.
+User:the corner
+Furhat:Pardon?
+Furhat:Please, tell me about the shape of the piece!
+User:it's three down and
+Furhat:Pardon?
+Furhat:Additional information on the shape could help me.
+User:3 right
+Furhat:I am sorry, but a beige piece at the right does not exist.
+Furhat:Which piece do you want to select?
+User:the baige piece at the left
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a piece at the left.
+Furhat:Any wrong information?
+User:Can we take the upper beige piece
+Furhat:Sorry, I didn't hear you
+Furhat:Any wrong information?
+User:the upper beige piece 
+Furhat:Sorry, I didn't understand that
+Furhat:Any wrong information?
+User:the pink shaped piece
+Furhat:I am sorry, but a pink piece at the left does not exist.
+Furhat:Please describe another piece.
+User:the dark blue one
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a dark blue piece .
+Furhat:Any wrong information?
+Furhat:Sorry, I didn't hear you
+Furhat:Any wrong information?
+User:the dark blue piece
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a dark blue piece .
+Furhat:Any wrong information?
+User:the blue piece
+Furhat:Ok. I seem to be missing some information.
+Furhat:Here is, what I have:
+Furhat:We are looking for a dark blue piece .
+Furhat:Any wrong information?
+User:yes
+Furhat:Oh I am sorry!
+Furhat:Elaborate on another piece, please.
+User:the squared with one extra
+Furhat:Could you rephrase that?
+User:the squared with one extra
+Furhat:Could you rephrase that?
+User:the square
+Furhat:Let's go with this one, okay?
+User:yes
+Furhat:Where does this piece go?
+User:right
+User:stop
+User:turn two times then mirror
+User:turn
+User:turn two times
+User:turn
+User:move down
+Furhat:hou...
+Furhat:The poor elephant!
+Furhat:Want to play another round?
+User:No
+Furhat:Ok. Thank you for your time.
+Furhat:Bye bye!
