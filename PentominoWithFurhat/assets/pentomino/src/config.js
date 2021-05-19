@@ -32,6 +32,7 @@ export class PentoConfig {
         // game mode
         this.templ_col = 'grey'
         this.provide_template = true
+        this.hide_buttons = true
         this.game_time = 600
         this.demo_time = 300
     }
