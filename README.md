@@ -19,7 +19,10 @@ In the experiment, you will meet the robot *Proto*. *Proto* will invite you to p
 Please agree to his offer and listen to his explanations carefully. Please make sure to speak loudly and clearly
 during the game!  
 You can find additional details on our dialog model and the objectives we seeked to achieve in the documentation paper.
-
+   
+A preview of the game interface:
+![Example Board](game_board_example.png)
+   
 ## Requirements
 
 You need to have **npm** and **node** installed. Other prerequisites are a running **Kotlin** and **Furhat SDK**, preferably the versions mentioned above.
